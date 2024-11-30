@@ -13,6 +13,10 @@
             font-family: 'Arial', sans-serif;
             overflow: hidden;
             background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
 
         .video-container {
@@ -34,32 +38,29 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            padding-top: 10vh; /* Move content higher */
+            justify-content: center;
+            width: 100%;
             color: white;
             text-shadow: 0 5px 15px rgba(0, 0, 0, 1);
         }
 
         #date {
-            font-size: 1.5rem; /* Smaller font size for date */
+            font-size: 1.2rem;
             font-family: 'Lora', serif;
-            text-align: center;
-            margin-bottom: 10px; /* Space between date and time */
+            margin-bottom: 5px;
         }
 
         #flip-clock {
-            font-size: 3rem; /* Smaller font size for clock */
+            font-size: 2.5rem;
             font-family: 'Orbitron', sans-serif;
             font-weight: 600;
-            text-align: center;
         }
 
         .interaction-prompt {
-            position: absolute;
-            top: 50%;
+            position: fixed;
+            bottom: 20%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             color: white;
             font-size: 1rem;
             background: rgba(0, 0, 0, 0.7);
@@ -74,14 +75,15 @@
 <body>
     <!-- Interaction Prompt -->
     <div class="interaction-prompt" id="interactionPrompt">
-        Tap anywhere to enable sound.
+        Tap anywhere to enable the video.
     </div>
 
     <!-- Video Background -->
     <div class="video-container">
         <iframe id="background-video" 
-            src="https://www.youtube.com/embed/kk1UKR0nJuY?autoplay=1&loop=1&playlist=kk1UKR0nJuY&controls=0&showinfo=0&rel=0&modestbranding=1&muted=1" 
-            allow="autoplay" allowfullscreen>
+            src="https://www.youtube.com/embed/kk1UKR0nJuY?loop=1&playlist=kk1UKR0nJuY&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1" 
+            allow="autoplay; encrypted-media" 
+            allowfullscreen>
         </iframe>
     </div>
 
@@ -116,15 +118,16 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Enable sound on user interaction
+        // Enable video sound on user interaction
         function enableSound() {
             const iframe = document.getElementById('background-video');
-            iframe.src = iframe.src.replace("&muted=1", "&mute=0"); // Unmute video
-            document.getElementById('interactionPrompt').style.display = 'none';
-            document.body.removeEventListener('click', enableSound); // Remove event listener after activation
+            const newSrc = iframe.src + "&autoplay=1";
+            iframe.src = newSrc; // Reload the iframe with autoplay and sound enabled
+            document.getElementById('interactionPrompt').style.display = 'none'; // Hide the prompt
+            document.body.removeEventListener('click', enableSound); // Remove the listener
         }
 
-        // Show interaction prompt and add event listener
+        // Show interaction prompt and listen for user interaction
         document.getElementById('interactionPrompt').style.display = 'block';
         document.body.addEventListener('click', enableSound);
     </script>
