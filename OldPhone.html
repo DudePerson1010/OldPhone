@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Background Clock</title>
@@ -40,24 +41,30 @@
             text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
         }
 
-        #flip-clock, #date {
-            position: relative;
+        /* Time Styles */
+        #flip-clock {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem; /* Set steady font size */
+            font-weight: 900; /* Bold text for the time */
+            color: white;
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.7), 0px 0px 20px rgba(255, 255, 255, 0.7); /* Glowing white text */
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.8); /* Translucent black background */
             padding: 20px 40px;
             border-radius: 10px;
-            background: rgba(0, 0, 0, 0.6);
-            font-family: 'Orbitron', sans-serif;
-            text-align: center;
         }
 
-        #flip-clock {
-            font-size: 4rem; /* Smaller font size for day mode */
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
+        /* Date Styles */
         #date {
+            font-family: 'Exo 2', sans-serif;
             font-size: 2rem;
-            font-family: 'Lora', serif;
+            font-weight: 600; /* You can adjust the weight as needed */
+            background: rgba(0, 0, 0, 0.8); /* Translucent black background */
+            color: white; /* White text color */
+            padding: 10px 20px; /* Padding for better readability */
+            border-radius: 10px; /* Rounded corners */
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.7), 0px 0px 20px rgba(255, 255, 255, 0.7); /* Glowing white text */
+
         }
 
         /* Night Mode Styles */
@@ -71,11 +78,12 @@
         }
 
         #flip-clock.night-mode, #date.night-mode {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.8); /* Darker translucent background in night mode */
+
         }
 
         #flip-clock.night-mode {
-            font-size: 6rem; /* Larger font size for night mode */
+            font-size: 6rem;
         }
 
         /* Toggle Button */
@@ -93,19 +101,21 @@
             z-index: 100;
         }
 
-        .night-mode-toggle:hover {
-            background-color: rgba(255, 255, 255, 0.8);
-            color: black;
-        }
+        /* Remove hover effect (hover styles deleted) */
+        /* .night-mode-toggle:hover { 
+            background-color: rgba(255, 255, 255, 0.8); 
+            color: black; 
+        } */
 
         /* Night Mode Button Color and Size */
         .night-mode .night-mode-toggle {
             color: #b0b0b0;  /* Slightly darker white in night mode */
-            font-size: 4rem;  /* Enlarged button */
-            padding: 20px 40px; /* Increased padding for larger button */
+            font-size: 2rem;  /* Keep emoji size the same */
+            padding: 20px 40px; /* Larger tap area */
         }
 
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto+Slab&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Video Background -->
@@ -132,6 +142,8 @@
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12 || 12; // Convert to 12-hour format
 
+            // Ensure hours, minutes, and seconds are always 2 digits
+            hours = String(hours).padStart(2, '0');
             const date = now.toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long',
