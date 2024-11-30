@@ -17,6 +17,7 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
+            position: relative;
         }
 
         .video-container {
@@ -28,12 +29,6 @@
             z-index: -1;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
         .clock-container {
             display: flex;
             flex-direction: column;
@@ -42,6 +37,8 @@
             width: 100%;
             color: white;
             text-shadow: 0 5px 15px rgba(0, 0, 0, 1);
+            position: absolute;
+            top: 30%; /* Adjusted for better position */
         }
 
         #date {
@@ -56,41 +53,53 @@
             font-weight: 600;
         }
 
-        .interaction-prompt {
+        .button-container {
             position: fixed;
             bottom: 20%;
             left: 50%;
             transform: translateX(-50%);
-            color: white;
-            font-size: 1rem;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 20px;
-            border-radius: 10px;
-            display: none;
-            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             text-align: center;
+        }
+
+        .btn {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            font-size: 1.2rem;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.8);
+            color: black;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- Interaction Prompt -->
-    <div class="interaction-prompt" id="interactionPrompt">
-        Tap anywhere to enable the video.
-    </div>
-
     <!-- Video Background -->
-    <div class="video-container">
-        <iframe id="background-video" 
-            src="https://www.youtube.com/embed/kk1UKR0nJuY?loop=1&playlist=kk1UKR0nJuY&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1" 
-            allow="autoplay; encrypted-media" 
-            allowfullscreen>
-        </iframe>
-    </div>
+    <div class="video-container" id="videoContainer"></div>
 
     <!-- Flip Clock -->
     <div class="clock-container">
         <div id="date"></div>
         <div id="flip-clock"></div>
+    </div>
+
+    <!-- Video Selection Buttons -->
+    <div class="button-container" id="buttonContainer">
+        <button class="btn" data-video="kk1UKR0nJuY">Video 1</button>
+        <button class="btn" data-video="XaoigWHOtBM">Video 2</button>
+        <button class="btn" data-video="mqtfXYRPYn8">Video 3</button>
     </div>
 
     <script>
@@ -118,18 +127,32 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Enable video sound on user interaction
-        function enableSound() {
-            const iframe = document.getElementById('background-video');
-            const newSrc = iframe.src + "&autoplay=1";
-            iframe.src = newSrc; // Reload the iframe with autoplay and sound enabled
-            document.getElementById('interactionPrompt').style.display = 'none'; // Hide the prompt
-            document.body.removeEventListener('click', enableSound); // Remove the listener
+        // Function to dynamically load the video
+        function loadVideo(videoId) {
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.innerHTML = ''; // Clear the existing iframe if any
+
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`;
+            iframe.width = "100%";
+            iframe.height = "100%";
+            iframe.style.border = "none";
+            iframe.allow = "autoplay; encrypted-media; fullscreen";
+            iframe.allowFullscreen = true;
+
+            videoContainer.appendChild(iframe);
+
+            // Hide all buttons once a video is selected
+            document.getElementById('buttonContainer').style.display = 'none';
         }
 
-        // Show interaction prompt and listen for user interaction
-        document.getElementById('interactionPrompt').style.display = 'block';
-        document.body.addEventListener('click', enableSound);
+        // Video switch button functionality
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const videoId = button.getAttribute('data-video');
+                loadVideo(videoId);
+            });
+        });
     </script>
 </body>
 </html>
