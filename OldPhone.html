@@ -50,7 +50,7 @@
         }
 
         #flip-clock {
-            font-size: 6rem;
+            font-size: 4rem; /* Smaller font size for day mode */
             font-weight: 600;
             margin-bottom: 10px;
         }
@@ -72,6 +72,10 @@
 
         #flip-clock.night-mode, #date.night-mode {
             background: rgba(0, 0, 0, 0.8);
+        }
+
+        #flip-clock.night-mode {
+            font-size: 6rem; /* Larger font size for night mode */
         }
 
         /* Toggle Button */
