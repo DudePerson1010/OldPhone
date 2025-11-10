@@ -1,201 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Background Clock</title>
-    <style>
-        /* General Styles */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-            background-color: #fff; /* Ensure light background by default */
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock + Current Weather + Quote</title>
+<style>
+body {
+  margin: 0;
+  background-color: #000;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
 
-        .video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-color: black;
-        }
+.half {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+#analog {
+  width: 90%;
+  height: 90%;
+}
 
-        .clock-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: white;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
-        }
+#analog svg { width: 100%; height: 100%; }
 
-        /* Time Styles */
-        #flip-clock {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 4rem; /* Set steady font size */
-            font-weight: 900; /* Bold text for the time */
-            color: white;
-            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.7), 0px 0px 20px rgba(255, 255, 255, 0.7); /* Glowing white text */
-            margin-bottom: 10px;
-            background: rgba(0, 0, 0, 0.8); /* Translucent black background */
-            padding: 20px 40px;
-            border-radius: 10px;
-        }
+.digital-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  padding: 5vh 3vw;
+  box-sizing: border-box;
+}
 
-        /* Date Styles */
-        #date {
-            font-family: 'Exo 2', sans-serif;
-            font-size: 2rem;
-            font-weight: 600; /* You can adjust the weight as needed */
-            background: rgba(0, 0, 0, 0.8); /* Translucent black background */
-            color: white; /* White text color */
-            padding: 10px 20px; /* Padding for better readability */
-            border-radius: 10px; /* Rounded corners */
-            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.7), 0px 0px 20px rgba(255, 255, 255, 0.7); /* Glowing white text */
+.digital-time {
+  font-size: 11vw;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -2px;
+}
 
-        }
+.digital-date {
+  margin-top: 0.1em;
+  font-size: 4vw;
+  color: #fff;
+  font-weight: 500;
+}
 
-        /* Night Mode Styles */
-        body.night-mode {
-            background-color: #121212;
-            filter: brightness(0.1); /* Ultra-low brightness */
-        }
+.digital-date span.day { color: #ff4c4c; }
 
-        .clock-container.night-mode {
-            color: #f0f0f0;
-        }
+.weather {
+  margin-top: 0.8em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6em;
+}
 
-        #flip-clock.night-mode, #date.night-mode {
-            background: rgba(0, 0, 0, 0.8); /* Darker translucent background in night mode */
+.weather-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  font-weight: 500;
+  font-size: 4vw;
+}
 
-        }
+.weather-icon { font-size: 4.5vw; }
 
-        #flip-clock.night-mode {
-            font-size: 6rem;
-        }
+.weather-extra {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 3vw;
+  color: #aaa;
+}
 
-        /* Toggle Button */
-        .night-mode-toggle {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background-color: rgba(0, 0, 0, 0);
-            color: white;
-            font-size: 2rem;  /* Normal button size */
-            padding: 10px 20px; /* Normal padding */
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 100;
-        }
+.weather-extra span { margin-top: 0.2em; }
 
-        /* Remove hover effect (hover styles deleted) */
-        /* .night-mode-toggle:hover { 
-            background-color: rgba(255, 255, 255, 0.8); 
-            color: black; 
-        } */
+.quote {
+  font-size: 3vw;
+  font-style: normal;
+  color: #fff; /* white text */
+  margin-bottom: 2vh;
+}
 
-        /* Night Mode Button Color and Size */
-        .night-mode .night-mode-toggle {
-            color: #b0b0b0;  /* Slightly darker white in night mode */
-            font-size: 2rem;  /* Keep emoji size the same */
-            padding: 20px 40px; /* Larger tap area */
-        }
+.quote-author {
+  font-size: 2vw; /* smaller */
+  font-style: italic; /* italicized */
+  margin-top: 0.3em;
+}
 
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto+Slab&display=swap" rel="stylesheet">
+@media (max-width: 800px) {
+  .digital-time { font-size: 16vw; }
+  .digital-date { font-size: 5vw; }
+  .weather-main { font-size: 5vw; }
+  .weather-icon { font-size: 6vw; }
+  .weather-extra { font-size: 4vw; }
+  .quote { font-size: 5vw; }
+  .quote-author { font-size: 3vw; }
+}
+</style>
 </head>
 <body>
-    <!-- Video Background -->
-    <div class="video-container">
-        <iframe id="background-video" src="https://www.youtube.com/embed/UJa80UPjREU?si=ZgL6h2sKGRLGPMBr?autoplay=1&loop=1&mute=1&playlist=XaoigWHOtBM" allow="autoplay" allowfullscreen></iframe>
+
+<div class="half">
+  <div id="analog">
+    <svg viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="98" stroke="#333" stroke-width="4" fill="none" />
+      <line id="hour-hand" x1="100" y1="100" x2="100" y2="55" stroke="#fff" stroke-width="6" stroke-linecap="round" />
+      <line id="minute-hand" x1="100" y1="100" x2="100" y2="35" stroke="#fff" stroke-width="4" stroke-linecap="round" />
+      <line id="second-hand" x1="100" y1="100" x2="100" y2="25" stroke="#ff4c4c" stroke-width="2" stroke-linecap="round" />
+      <circle cx="100" cy="100" r="3" fill="#ff4c4c" />
+    </svg>
+  </div>
+</div>
+
+<div class="half">
+  <div class="digital-container">
+    <div>
+      <div class="digital-time" id="digitalTime">--:--</div>
+      <div class="digital-date" id="digitalDate">Loading date...</div>
     </div>
-
-    <!-- Night Mode Toggle Button -->
-    <button class="night-mode-toggle" id="nightModeToggle">☾</button>
-
-    <!-- Flip Clock -->
-    <div class="clock-container">
-        <div id="flip-clock"></div>
-        <div id="date"></div>
+    <div class="weather">
+      <div class="weather-main">
+        <span class="weather-icon" id="weatherIcon">☀️</span>
+        <span id="currentCondition">Loading...</span>
+      </div>
+      <div class="weather-extra">
+        <span id="currentWind">Wind: -- mph</span>
+        <span id="currentRain" style="display:none;">Rain: -- in</span>
+      </div>
     </div>
+    <div>
+      <div class="quote" id="quoteText">Loading quote...</div>
+      <div class="quote-author" id="quoteAuthor"></div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        // JavaScript for Clock and YouTube Background
-        function updateClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12; // Convert to 12-hour format
+<script>
+function updateAnalog() {
+  const now = new Date();
+  const sec = now.getSeconds();
+  const min = now.getMinutes();
+  const hr = now.getHours() % 12;
+  document.getElementById('hour-hand').setAttribute('transform', `rotate(${hr*30 + min/2},100,100)`);
+  document.getElementById('minute-hand').setAttribute('transform', `rotate(${min*6},100,100)`);
+  document.getElementById('second-hand').setAttribute('transform', `rotate(${sec*6},100,100)`);
+}
 
-            // Ensure hours, minutes, and seconds are always 2 digits
-            hours = String(hours).padStart(2, '0');
-            const date = now.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            });
+function updateDigital() {
+  const now = new Date();
+  let hours = now.getHours();
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  document.getElementById('digitalTime').textContent = `${hours}:${minutes} ${ampm}`;
 
-            document.getElementById('flip-clock').innerHTML = `${hours}:${minutes}:${seconds} ${ampm}`;
-            document.getElementById('date').innerHTML = date;
-        }
+  const month = now.toLocaleString('en-US', { month: 'short' });
+  const weekday = now.toLocaleString('en-US', { weekday: 'long' });
+  const day = now.getDate();
+  document.getElementById('digitalDate').innerHTML = `${weekday}, ${month} <span class="day">${day}</span>`;
+}
 
-        // Night Mode Functions
-        let nightModeActive = false; // Track if night mode is active
+async function fetchWeather() {
+  const latitude = 40.958;
+  const longitude = -73.808;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&hourly=precipitation`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const w = data.current_weather;
 
-        const nightModeToggle = document.getElementById('nightModeToggle');
-        const body = document.body;
-        const clockContainer = document.querySelector('.clock-container');
-        const flipClock = document.getElementById('flip-clock');
-        const date = document.getElementById('date');
+    // Cloudy, 55°F style
+    document.getElementById('currentCondition').textContent = `${getWeatherDesc(w.weathercode)}, ${Math.round(w.temperature)}°F`;
+    document.getElementById('weatherIcon').textContent = getWeatherIcon(w.weathercode);
 
-        nightModeToggle.addEventListener('click', () => {
-            if (nightModeActive) {
-                disableNightMode();
-            } else {
-                enableNightMode();
-            }
-        });
+    document.getElementById('currentWind').textContent = `Wind: ${Math.round(w.windspeed)} mph`;
 
-        function enableNightMode() {
-            nightModeActive = true;
-            // Add 'night-mode' class immediately, no transition animation
-            body.classList.add('night-mode');
-            clockContainer.classList.add('night-mode');
-            flipClock.classList.add('night-mode');
-            date.classList.add('night-mode');
-            document.getElementById('background-video').style.display = 'none'; // Hide background video in night mode
-        }
+    if(data.hourly && data.hourly.precipitation){
+      const rainAmount = data.hourly.precipitation[0];
+      if(rainAmount > 0){
+        const rainEl = document.getElementById('currentRain');
+        rainEl.style.display = 'block';
+        rainEl.textContent = `Rain: ${rainAmount.toFixed(2)} in`;
+      } else {
+        document.getElementById('currentRain').style.display = 'none';
+      }
+    }
+  } catch(err){
+    document.getElementById('currentCondition').textContent = "Weather unavailable";
+  }
+}
 
-        function disableNightMode() {
-            nightModeActive = false;
-            // Remove 'night-mode' class immediately, no transition animation
-            body.classList.remove('night-mode');
-            clockContainer.classList.remove('night-mode');
-            flipClock.classList.remove('night-mode');
-            date.classList.remove('night-mode');
-            document.getElementById('background-video').style.display = 'block'; // Show background video again
-        }
+function getWeatherIcon(code){
+  if(code===0) return '☀️';
+  if(code<=2) return '🌤️';
+  if(code<=45) return '☁️';
+  if(code<=67) return '🌧️';
+  if(code<=77) return '🌨️';
+  if(code<=99) return '⛈️';
+  return '❓';
+}
 
-        // Update the clock every second
-        setInterval(updateClock, 1000);
-        updateClock(); // Initial update to check the time
+function getWeatherDesc(code){
+  if(code===0) return "Clear";
+  if(code<=2) return "Partly Cloudy";
+  if(code<=45) return "Cloudy";
+  if(code<=67) return "Rain";
+  if(code<=77) return "Snow";
+  if(code<=99) return "Storm";
+  return "Unknown";
+}
 
-    </script>
+const quotes = [
+  {text:"You must take the chances to go faster.", author:"Ayrton Senna"},
+  {text:"Life is about taking risks and going for it.", author:"Richard Branson"},
+  {text:"Only those who dare to fail greatly can ever achieve greatly.", author:"Robert F. Kennedy"},
+  {text:"I skate to where the puck is going to be, not where it has been.", author:"Wayne Gretzky"},
+  {text:"Success comes from taking calculated risks.", author:"Elon Musk"}
+];
+
+function updateQuote(){
+  const now = new Date();
+  const index = now.getHours() % quotes.length;
+  const q = quotes[index];
+  document.getElementById('quoteText').textContent = `"${q.text}"`;
+  const authorEl = document.getElementById('quoteAuthor');
+  authorEl.textContent = q.author;
+  authorEl.style.fontStyle = 'italic';
+}
+
+function scheduleHourlyRefresh(){
+  const now = new Date();
+  const msUntilNextHour = ((60 - now.getMinutes())*60 - now.getSeconds())*1000;
+  setTimeout(()=>{ location.reload(); }, msUntilNextHour + 1000);
+}
+
+setInterval(updateAnalog, 1000);
+setInterval(updateDigital, 1000);
+updateAnalog();
+updateDigital();
+fetchWeather();
+updateQuote();
+scheduleHourlyRefresh();
+</script>
+
 </body>
 </html>
