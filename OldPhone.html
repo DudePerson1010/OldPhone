@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no">
-<title>Clock + Weather + Quote</title>
+<title>Clock + Calendar + Quote</title>
 <style>
 body {
   margin: 0;
@@ -45,67 +45,77 @@ body {
   font-weight: 600;
   margin: 0;
   letter-spacing: -2px;
+    margin-bottom: -0.2em; /* space below the date for calendar */
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .digital-date {
-  margin-top: 0.1em;
-  font-size: 4vw;
+  margin-top: 0.3em; /* extra space below time */
+  margin-bottom: 0.2em; /* space below the date for calendar */
+  font-size: 3.5vw;
   color: #fff;
   font-weight: 500;
 }
 
 .digital-date span.day { color: #ff4c4c; }
 
-.weather {
-  margin-top: 0.8em;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6em;
+.calendar {
+  margin-top: 1em;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px 0; /* vertical space increased */
+  justify-items: center;
 }
 
-.weather-main {
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-weight: bold;
+  margin-bottom: 10px; /* extra space below day-of-week row */
+  font-size: 3vw;
+}
+
+.calendar-day {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6em;
-  font-weight: 500;
-  font-size: 4vw;
+  font-size: 2vw;
 }
 
-.weather-icon { font-size: 4.5vw; }
-
-.weather-extra {
+.today {
+  background-color: #ff4c4c;
+  border-radius: 50%;
+  width: 45px; /* bigger dot */
+  height: 45px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  font-size: 3vw;
-  color: #aaa;
+  justify-content: center;
+  color: #fff;
 }
-
-.weather-extra span { margin-top: 0.2em; }
 
 .quote {
-  font-size: 3vw;
+  font-size: 2.2vw; /* slightly smaller */
   font-style: normal;
   color: #fff;
-  margin-bottom: 2vh;
+  margin-top: 1em;
 }
 
 .quote-author {
-  font-size: 2vw;
+  font-size: 1.7vw;
   font-style: italic;
   margin-top: 0.3em;
 }
 
 @media (max-width: 1024px) {
   .digital-time { font-size: 12vw; }
-  .digital-date { font-size: 5vw; }
-  .weather-main { font-size: 5vw; }
-  .weather-icon { font-size: 5.5vw; }
-  .weather-extra { font-size: 4vw; }
-  .quote { font-size: 4vw; }
-  .quote-author { font-size: 3vw; }
+  .digital-date { font-size: 5vw; margin-bottom:0.7em; }
+  .calendar-header { font-size: 4vw; margin-bottom:12px; }
+  .calendar-day { font-size: 3vw; width:28px; height:28px; }
+  .today { width:36px; height:36px; }
+  .quote { font-size: 3vw; }
+  .quote-author { font-size: 2.5vw; }
 }
 </style>
 </head>
@@ -129,16 +139,10 @@ body {
       <div class="digital-time" id="digitalTime">--:--</div>
       <div class="digital-date" id="digitalDate">Loading date...</div>
     </div>
-    <div class="weather">
-      <div class="weather-main">
-        <span class="weather-icon" id="weatherIcon">☀️</span>
-        <span id="currentCondition">Loading...</span>
-      </div>
-      <div class="weather-extra">
-        <span id="currentWind">Wind: -- mph</span>
-        <span id="currentRain" style="display:none;">Rain: -- in</span>
-      </div>
-    </div>
+
+    <div class="calendar-header" id="calendarHeader"></div>
+    <div class="calendar" id="calendar"></div>
+
     <div>
       <div class="quote" id="quoteText">Loading quote...</div>
       <div class="quote-author" id="quoteAuthor"></div>
@@ -174,55 +178,41 @@ function updateDigital() {
   document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
 }
 
-// Weather
-function fetchWeather() {
-  var latitude = 40.958;
-  var longitude = -73.808;
-  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&hourly=precipitation';
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onreadystatechange = function() {
-      if(xhr.readyState === 4 && xhr.status === 200){
-        var data = JSON.parse(xhr.responseText);
-        var w = data.current_weather;
-        document.getElementById('currentCondition').textContent = getWeatherDesc(w.weathercode) + ', ' + Math.round(w.temperature) + '°F';
-        document.getElementById('weatherIcon').textContent = getWeatherIcon(w.weathercode);
-        document.getElementById('currentWind').textContent = 'Wind: ' + Math.round(w.windspeed) + ' mph';
-        if(data.hourly && data.hourly.precipitation){
-          var rainAmount = data.hourly.precipitation[0];
-          var rainEl = document.getElementById('currentRain');
-          if(rainAmount > 0){
-            rainEl.style.display = 'block';
-            rainEl.textContent = 'Rain: ' + rainAmount.toFixed(2) + ' in';
-          } else { rainEl.style.display = 'none'; }
-        }
-      }
-    };
-    xhr.send();
-  } catch(e){
-    document.getElementById('currentCondition').textContent = 'Weather unavailable';
+// Calendar
+function generateCalendar() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth();
+  var today = now.getDate();
+  
+  var daysOfWeek = ['S','M','T','W','T','F','S'];
+  var headerEl = document.getElementById('calendarHeader');
+  headerEl.innerHTML = '';
+  for(var i=0;i<7;i++){
+    var d = document.createElement('div');
+    d.textContent = daysOfWeek[i];
+    headerEl.appendChild(d);
   }
-}
 
-function getWeatherIcon(code){
-  if(code===0) return '☀️';
-  if(code<=2) return '🌤️';
-  if(code<=45) return '☁️';
-  if(code<=67) return '🌧️';
-  if(code<=77) return '🌨️';
-  if(code<=99) return '⛈️';
-  return '❓';
-}
+  var firstDay = new Date(year, month, 1).getDay();
+  var lastDate = new Date(year, month+1, 0).getDate();
 
-function getWeatherDesc(code){
-  if(code===0) return 'Clear';
-  if(code<=2) return 'Partly Cloudy';
-  if(code<=45) return 'Cloudy';
-  if(code<=67) return 'Rain';
-  if(code<=77) return 'Snow';
-  if(code<=99) return 'Storm';
-  return 'Unknown';
+  var calendarEl = document.getElementById('calendar');
+  calendarEl.innerHTML = '';
+
+  for(var i=0; i<firstDay; i++){
+    var empty = document.createElement('div');
+    empty.className = 'calendar-day';
+    calendarEl.appendChild(empty);
+  }
+
+  for(var d=1; d<=lastDate; d++){
+    var dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    dayEl.textContent = d;
+    if(d===today){ dayEl.className += ' today'; }
+    calendarEl.appendChild(dayEl);
+  }
 }
 
 // Quotes
@@ -244,21 +234,13 @@ function updateQuote(){
   authorEl.style.fontStyle = 'italic';
 }
 
-// Auto-refresh every hour
-function scheduleHourlyRefresh(){
-  var now = new Date();
-  var msUntilNextHour = ((60 - now.getMinutes())*60 - now.getSeconds())*1000;
-  setTimeout(function(){ location.reload(); }, msUntilNextHour + 1000);
-}
-
 // Initialize
 setInterval(updateAnalog, 1000);
 setInterval(updateDigital, 1000);
 updateAnalog();
 updateDigital();
-fetchWeather();
+generateCalendar();
 updateQuote();
-scheduleHourlyRefresh();
 </script>
 
 </body>
