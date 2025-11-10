@@ -45,34 +45,35 @@ body {
   font-weight: 600;
   margin: 0;
   letter-spacing: -2px;
-    margin-bottom: -0.2em; /* space below the date for calendar */
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .digital-date {
-  margin-top: 0.3em; /* extra space below time */
-  margin-bottom: 0.2em; /* space below the date for calendar */
-  font-size: 3.5vw;
+  margin-top: 0.3em;
+  margin-bottom: 0.5em;
+  font-size: 4vw;
   color: #fff;
   font-weight: 500;
 }
 
 .digital-date span.day { color: #ff4c4c; }
 
-.calendar {
-  margin-top: 1em;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px 0; /* vertical space increased */
-  justify-items: center;
+/* Flexbox calendar */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding: 0 5px;
+  font-size: 3vw;
 }
 
-.calendar-header {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  font-weight: bold;
-  margin-bottom: 10px; /* extra space below day-of-week row */
-  font-size: 3vw;
+.calendar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px 8px;
+  padding: 0 5px;
 }
 
 .calendar-day {
@@ -87,8 +88,8 @@ body {
 .today {
   background-color: #ff4c4c;
   border-radius: 50%;
-  width: 45px; /* bigger dot */
-  height: 45px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,7 +97,7 @@ body {
 }
 
 .quote {
-  font-size: 2.2vw; /* slightly smaller */
+  font-size: 2.2vw;
   font-style: normal;
   color: #fff;
   margin-top: 1em;
@@ -178,13 +179,14 @@ function updateDigital() {
   document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
 }
 
-// Calendar
+// Calendar using flexbox
 function generateCalendar() {
   var now = new Date();
   var year = now.getFullYear();
   var month = now.getMonth();
   var today = now.getDate();
-  
+
+  // Day-of-week header
   var daysOfWeek = ['S','M','T','W','T','F','S'];
   var headerEl = document.getElementById('calendarHeader');
   headerEl.innerHTML = '';
@@ -194,12 +196,14 @@ function generateCalendar() {
     headerEl.appendChild(d);
   }
 
-  var firstDay = new Date(year, month, 1).getDay();
-  var lastDate = new Date(year, month+1, 0).getDate();
-
+  // Days container
   var calendarEl = document.getElementById('calendar');
   calendarEl.innerHTML = '';
 
+  var firstDay = new Date(year, month, 1).getDay();
+  var lastDate = new Date(year, month+1, 0).getDate();
+
+  // Empty placeholders
   for(var i=0; i<firstDay; i++){
     var empty = document.createElement('div');
     empty.className = 'calendar-day';
