@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clock + Current Weather + Quote</title>
+<meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no">
+<title>Clock + Weather + Quote</title>
 <style>
 body {
   margin: 0;
@@ -36,12 +36,12 @@ body {
   justify-content: space-between;
   height: 100%;
   width: 100%;
-  padding: 5vh 3vw;
+  padding: 2vh 2vw;
   box-sizing: border-box;
 }
 
 .digital-time {
-  font-size: 11vw;
+  font-size: 10vw;
   font-weight: 600;
   margin: 0;
   letter-spacing: -2px;
@@ -88,23 +88,23 @@ body {
 .quote {
   font-size: 3vw;
   font-style: normal;
-  color: #fff; /* white text */
+  color: #fff;
   margin-bottom: 2vh;
 }
 
 .quote-author {
-  font-size: 2vw; /* smaller */
-  font-style: italic; /* italicized */
+  font-size: 2vw;
+  font-style: italic;
   margin-top: 0.3em;
 }
 
-@media (max-width: 800px) {
-  .digital-time { font-size: 16vw; }
+@media (max-width: 1024px) {
+  .digital-time { font-size: 12vw; }
   .digital-date { font-size: 5vw; }
   .weather-main { font-size: 5vw; }
-  .weather-icon { font-size: 6vw; }
+  .weather-icon { font-size: 5.5vw; }
   .weather-extra { font-size: 4vw; }
-  .quote { font-size: 5vw; }
+  .quote { font-size: 4vw; }
   .quote-author { font-size: 3vw; }
 }
 </style>
@@ -147,57 +147,61 @@ body {
 </div>
 
 <script>
+// Analog clock
 function updateAnalog() {
-  const now = new Date();
-  const sec = now.getSeconds();
-  const min = now.getMinutes();
-  const hr = now.getHours() % 12;
-  document.getElementById('hour-hand').setAttribute('transform', `rotate(${hr*30 + min/2},100,100)`);
-  document.getElementById('minute-hand').setAttribute('transform', `rotate(${min*6},100,100)`);
-  document.getElementById('second-hand').setAttribute('transform', `rotate(${sec*6},100,100)`);
+  var now = new Date();
+  var sec = now.getSeconds();
+  var min = now.getMinutes();
+  var hr = now.getHours() % 12;
+  document.getElementById('hour-hand').setAttribute('transform', 'rotate(' + (hr*30 + min/2) + ',100,100)');
+  document.getElementById('minute-hand').setAttribute('transform', 'rotate(' + (min*6) + ',100,100)');
+  document.getElementById('second-hand').setAttribute('transform', 'rotate(' + (sec*6) + ',100,100)');
 }
 
+// Time/date
 function updateDigital() {
-  const now = new Date();
-  let hours = now.getHours();
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  var now = new Date();
+  var hours = now.getHours();
+  var minutes = now.getMinutes();
+  minutes = (minutes < 10 ? '0' : '') + minutes;
+  var ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12 || 12;
-  document.getElementById('digitalTime').textContent = `${hours}:${minutes} ${ampm}`;
+  document.getElementById('digitalTime').textContent = hours + ':' + minutes + ' ' + ampm;
 
-  const month = now.toLocaleString('en-US', { month: 'short' });
-  const weekday = now.toLocaleString('en-US', { weekday: 'long' });
-  const day = now.getDate();
-  document.getElementById('digitalDate').innerHTML = `${weekday}, ${month} <span class="day">${day}</span>`;
+  var month = now.toLocaleString('en-US', { month: 'short' });
+  var weekday = now.toLocaleString('en-US', { weekday: 'long' });
+  var day = now.getDate();
+  document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
 }
 
-async function fetchWeather() {
-  const latitude = 40.958;
-  const longitude = -73.808;
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&hourly=precipitation`;
+// Weather
+function fetchWeather() {
+  var latitude = 40.958;
+  var longitude = -73.808;
+  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&hourly=precipitation';
   try {
-    const res = await fetch(url);
-    const data = await res.json();
-    const w = data.current_weather;
-
-    // Cloudy, 55°F style
-    document.getElementById('currentCondition').textContent = `${getWeatherDesc(w.weathercode)}, ${Math.round(w.temperature)}°F`;
-    document.getElementById('weatherIcon').textContent = getWeatherIcon(w.weathercode);
-
-    document.getElementById('currentWind').textContent = `Wind: ${Math.round(w.windspeed)} mph`;
-
-    if(data.hourly && data.hourly.precipitation){
-      const rainAmount = data.hourly.precipitation[0];
-      if(rainAmount > 0){
-        const rainEl = document.getElementById('currentRain');
-        rainEl.style.display = 'block';
-        rainEl.textContent = `Rain: ${rainAmount.toFixed(2)} in`;
-      } else {
-        document.getElementById('currentRain').style.display = 'none';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+      if(xhr.readyState === 4 && xhr.status === 200){
+        var data = JSON.parse(xhr.responseText);
+        var w = data.current_weather;
+        document.getElementById('currentCondition').textContent = getWeatherDesc(w.weathercode) + ', ' + Math.round(w.temperature) + '°F';
+        document.getElementById('weatherIcon').textContent = getWeatherIcon(w.weathercode);
+        document.getElementById('currentWind').textContent = 'Wind: ' + Math.round(w.windspeed) + ' mph';
+        if(data.hourly && data.hourly.precipitation){
+          var rainAmount = data.hourly.precipitation[0];
+          var rainEl = document.getElementById('currentRain');
+          if(rainAmount > 0){
+            rainEl.style.display = 'block';
+            rainEl.textContent = 'Rain: ' + rainAmount.toFixed(2) + ' in';
+          } else { rainEl.style.display = 'none'; }
+        }
       }
-    }
-  } catch(err){
-    document.getElementById('currentCondition').textContent = "Weather unavailable";
+    };
+    xhr.send();
+  } catch(e){
+    document.getElementById('currentCondition').textContent = 'Weather unavailable';
   }
 }
 
@@ -212,16 +216,17 @@ function getWeatherIcon(code){
 }
 
 function getWeatherDesc(code){
-  if(code===0) return "Clear";
-  if(code<=2) return "Partly Cloudy";
-  if(code<=45) return "Cloudy";
-  if(code<=67) return "Rain";
-  if(code<=77) return "Snow";
-  if(code<=99) return "Storm";
-  return "Unknown";
+  if(code===0) return 'Clear';
+  if(code<=2) return 'Partly Cloudy';
+  if(code<=45) return 'Cloudy';
+  if(code<=67) return 'Rain';
+  if(code<=77) return 'Snow';
+  if(code<=99) return 'Storm';
+  return 'Unknown';
 }
 
-const quotes = [
+// Quotes
+var quotes = [
   {text:"You must take the chances to go faster.", author:"Ayrton Senna"},
   {text:"Life is about taking risks and going for it.", author:"Richard Branson"},
   {text:"Only those who dare to fail greatly can ever achieve greatly.", author:"Robert F. Kennedy"},
@@ -230,21 +235,23 @@ const quotes = [
 ];
 
 function updateQuote(){
-  const now = new Date();
-  const index = now.getHours() % quotes.length;
-  const q = quotes[index];
-  document.getElementById('quoteText').textContent = `"${q.text}"`;
-  const authorEl = document.getElementById('quoteAuthor');
+  var now = new Date();
+  var index = now.getHours() % quotes.length;
+  var q = quotes[index];
+  document.getElementById('quoteText').textContent = '"' + q.text + '"';
+  var authorEl = document.getElementById('quoteAuthor');
   authorEl.textContent = q.author;
   authorEl.style.fontStyle = 'italic';
 }
 
+// Auto-refresh every hour
 function scheduleHourlyRefresh(){
-  const now = new Date();
-  const msUntilNextHour = ((60 - now.getMinutes())*60 - now.getSeconds())*1000;
-  setTimeout(()=>{ location.reload(); }, msUntilNextHour + 1000);
+  var now = new Date();
+  var msUntilNextHour = ((60 - now.getMinutes())*60 - now.getSeconds())*1000;
+  setTimeout(function(){ location.reload(); }, msUntilNextHour + 1000);
 }
 
+// Initialize
 setInterval(updateAnalog, 1000);
 setInterval(updateDigital, 1000);
 updateAnalog();
