@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no">
-<title>Clock + Calendar + Quote</title>
+<title>Clock + Quote Display</title>
 <style>
 body {
   margin: 0;
@@ -15,6 +15,7 @@ body {
   overflow: hidden;
 }
 
+/* Split layout */
 .half {
   flex: 1;
   display: flex;
@@ -27,101 +28,88 @@ body {
   height: 90%;
 }
 
-#analog svg { width: 100%; height: 100%; }
+#analog svg {
+  width: 100%;
+  height: 100%;
+}
 
+/* Right panel */
 .digital-container {
   text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   height: 100%;
   width: 100%;
-  padding: 2vh 2vw;
+  padding: 2vh 3vw;
   box-sizing: border-box;
 }
 
+/* Time layout */
 .digital-time {
-  font-size: 10vw;
+  font-size: 13vw;
   font-weight: 600;
   margin: 0;
-  letter-spacing: -2px;
+  position: relative;
+  display: inline-block;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  letter-spacing: -3px;
+}
+
+.time-main {
+  display: inline-block;
+}
+
+.time-ampm {
+  position: absolute;
+  top: 5%;
+  right: -1.8em;
+  font-size: 2.2vw;
+  font-weight: 400;
+}
+
+/* Date styling */
+.digital-date {
+  margin-top: 0.5em;
+  font-size: 4.5vw;
+  color: #fff;
+  font-weight: 500;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-.digital-date {
-  margin-top: 0.3em;
-  margin-bottom: 0.5em;
-  font-size: 4vw;
-  color: #fff;
-  font-weight: 500;
+.digital-date span.day {
+  color: #ff4c4c;
 }
 
-.digital-date span.day { color: #ff4c4c; }
-
-/* Flexbox calendar */
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-  margin-bottom: 10px;
-  padding: 0 5px;
-  font-size: 3vw;
-}
-
-.calendar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 8px 8px;
-  padding: 0 5px;
-}
-
-.calendar-day {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2vw;
-}
-
-.today {
-  background-color: #ff4c4c;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-
+/* Quote section */
 .quote {
-  font-size: 2.2vw;
+  font-size: 2.8vw;
   font-style: normal;
   color: #fff;
-  margin-top: 1em;
+  margin-top: 2.5em;
+  padding: 0 1vw;
 }
 
 .quote-author {
-  font-size: 1.7vw;
+  font-size: 2vw;
   font-style: italic;
+  color: #ccc;
   margin-top: 0.3em;
 }
 
+/* Adjust for smaller screens */
 @media (max-width: 1024px) {
-  .digital-time { font-size: 12vw; }
-  .digital-date { font-size: 5vw; margin-bottom:0.7em; }
-  .calendar-header { font-size: 4vw; margin-bottom:12px; }
-  .calendar-day { font-size: 3vw; width:28px; height:28px; }
-  .today { width:36px; height:36px; }
-  .quote { font-size: 3vw; }
+  .digital-time { font-size: 14vw; }
+  .time-ampm { font-size: 3vw; right: -2em; }
+  .digital-date { font-size: 6vw; }
+  .quote { font-size: 3.6vw; }
   .quote-author { font-size: 2.5vw; }
 }
 </style>
 </head>
 <body>
 
+<!-- Left: Analog Clock -->
 <div class="half">
   <div id="analog">
     <svg viewBox="0 0 200 200">
@@ -134,15 +122,16 @@ body {
   </div>
 </div>
 
+<!-- Right: Time, Date, and Quote -->
 <div class="half">
   <div class="digital-container">
     <div>
-      <div class="digital-time" id="digitalTime">--:--</div>
+      <div class="digital-time" id="digitalTime">
+        <span class="time-main" id="timeMain">--:--</span>
+        <span class="time-ampm" id="timeAMPM">AM</span>
+      </div>
       <div class="digital-date" id="digitalDate">Loading date...</div>
     </div>
-
-    <div class="calendar-header" id="calendarHeader"></div>
-    <div class="calendar" id="calendar"></div>
 
     <div>
       <div class="quote" id="quoteText">Loading quote...</div>
@@ -163,7 +152,7 @@ function updateAnalog() {
   document.getElementById('second-hand').setAttribute('transform', 'rotate(' + (sec*6) + ',100,100)');
 }
 
-// Time/date
+// Digital time + date
 function updateDigital() {
   var now = new Date();
   var hours = now.getHours();
@@ -171,7 +160,9 @@ function updateDigital() {
   minutes = (minutes < 10 ? '0' : '') + minutes;
   var ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12 || 12;
-  document.getElementById('digitalTime').textContent = hours + ':' + minutes + ' ' + ampm;
+
+  document.getElementById('timeMain').textContent = hours + ':' + minutes;
+  document.getElementById('timeAMPM').textContent = ampm;
 
   var month = now.toLocaleString('en-US', { month: 'short' });
   var weekday = now.toLocaleString('en-US', { weekday: 'long' });
@@ -179,53 +170,25 @@ function updateDigital() {
   document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
 }
 
-// Calendar using flexbox
-function generateCalendar() {
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var today = now.getDate();
-
-  // Day-of-week header
-  var daysOfWeek = ['S','M','T','W','T','F','S'];
-  var headerEl = document.getElementById('calendarHeader');
-  headerEl.innerHTML = '';
-  for(var i=0;i<7;i++){
-    var d = document.createElement('div');
-    d.textContent = daysOfWeek[i];
-    headerEl.appendChild(d);
-  }
-
-  // Days container
-  var calendarEl = document.getElementById('calendar');
-  calendarEl.innerHTML = '';
-
-  var firstDay = new Date(year, month, 1).getDay();
-  var lastDate = new Date(year, month+1, 0).getDate();
-
-  // Empty placeholders
-  for(var i=0; i<firstDay; i++){
-    var empty = document.createElement('div');
-    empty.className = 'calendar-day';
-    calendarEl.appendChild(empty);
-  }
-
-  for(var d=1; d<=lastDate; d++){
-    var dayEl = document.createElement('div');
-    dayEl.className = 'calendar-day';
-    dayEl.textContent = d;
-    if(d===today){ dayEl.className += ' today'; }
-    calendarEl.appendChild(dayEl);
-  }
-}
-
-// Quotes
+// Quote rotation
 var quotes = [
-  {text:"You must take the chances to go faster.", author:"Ayrton Senna"},
-  {text:"Life is about taking risks and going for it.", author:"Richard Branson"},
-  {text:"Only those who dare to fail greatly can ever achieve greatly.", author:"Robert F. Kennedy"},
-  {text:"I skate to where the puck is going to be, not where it has been.", author:"Wayne Gretzky"},
-  {text:"Success comes from taking calculated risks.", author:"Elon Musk"}
+  { text: "You must take the chances to go faster.", author: "Ayrton Senna" },
+  { text: "If everything seems under control, you’re not going fast enough.", author: "Mario Andretti" },
+  { text: "Racing is life. Anything before or after is just waiting.", author: "Steve McQueen" },
+  { text: "Straight roads are for fast cars, turns are for fast drivers.", author: "Colin McRae" },
+  { text: "Ask any racer, any real racer. It doesn’t matter if you win by an inch or a mile; winning’s winning.", author: "Dominic Toretto" },
+  { text: "You win some, you lose some, but you live to fight another day.", author: "Sean Boswell" },
+  { text: "It’s not how you stand by your car, it’s how you race your car.", author: "Leon" },
+  { text: "Speed has never killed anyone. Suddenly becoming stationary, that’s what gets you.", author: "Jeremy Clarkson" },
+  { text: "I live my life a quarter mile at a time.", author: "Dominic Toretto" },
+  { text: "The winner ain’t the one with the fastest car — it’s the one who refuses to lose.", author: "Dale Earnhardt" },
+  { text: "To achieve anything in this game, you must be prepared to dabble in the boundary of disaster.", author: "Stirling Moss" },
+  { text: "It’s not always about speed. It’s about control.", author: "Han Lue" },
+  { text: "When you’re racing, it’s life. Anything that happens before or after is just waiting.", author: "Steve McQueen" },
+  { text: "You don’t need to understand something to enjoy it. The feeling of driving fast is universal.", author: "Lewis Hamilton" },
+  { text: "Race cars are neither beautiful nor ugly. They become beautiful when they win.", author: "Enzo Ferrari" },
+  { text: "You can’t cheat death, but you can make him work for it.", author: "Paul Walker" },
+  { text: "The car is an extension of who you are. It reflects your style and your attitude.", author: "Ken Block" }
 ];
 
 function updateQuote(){
@@ -238,12 +201,11 @@ function updateQuote(){
   authorEl.style.fontStyle = 'italic';
 }
 
-// Initialize
+// Initialize everything
 setInterval(updateAnalog, 1000);
 setInterval(updateDigital, 1000);
 updateAnalog();
 updateDigital();
-generateCalendar();
 updateQuote();
 </script>
 
