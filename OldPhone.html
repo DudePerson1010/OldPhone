@@ -16,15 +16,17 @@
 
   /* digital side */
   .digital-container {
-    box-sizing:border-box;
-    padding:0 3vw;
-    width:100%;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-  }
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 0 3vw;
+  box-sizing: border-box;
+  overflow: hidden;
+  transform: translateX(-5vw); /* ← shift everything slightly left */
+}
 
   /* outer area that constrains time width so we can fit */
   .time-area {
@@ -72,7 +74,7 @@
     line-height:1.05;
     font-weight:500;
   }
-  .digital-date .weekday { display:block; font-size:4vw; }
+  .digital-date .weekday { display:block; font-size:6vw; }
   .digital-date .monthline { display:block; font-size:5vw; }
   .digital-date .day { color:#ff4c4c; }
 
