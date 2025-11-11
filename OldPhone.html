@@ -32,7 +32,7 @@ html,body{
   width:100%;
   padding:0 3vw;
   box-sizing:border-box;
-  transform:translateX(-4vw);
+  transform:translateX(-2vw);
   transition:all 0.8s ease;
 }
 
@@ -56,9 +56,8 @@ html,body{
 .time-ampm{
   display:inline-block;
   font-size:3vw;
-  margin-left:0.2vw;
+  margin-left:-1vw;
   vertical-align:super;
-  opacity:0.9;
   font-weight:500;
 }
 
@@ -92,15 +91,16 @@ html,body{
 
 /* ---------- Night-mode centered & moved up ---------- */
 :root {
-  --night-top: -100vh; /* adjust to move time/date up in night mode */
+  --night-top: -10vh; /* adjust to move time/date up in night mode */
 }
 .night-active .layout{
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
   align-items:center;
-  height:85vh;
+  height:20vh;
   padding-top:var(--night-top);
+  padding-left: 40vh;
 }
 
 /* night visuals */
@@ -156,7 +156,7 @@ html,body{
 function $(id){ return document.getElementById(id); }
 
 /* opacity of digits during blackout */
-var nightOpacity = 0.05;
+var nightOpacity = 0.08;
 
 /* smooth analog */
 function smoothAnalog(){
