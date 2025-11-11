@@ -3,229 +3,176 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no" />
-<title>Minimal Clock — Fit & Two-line Date</title>
+<title>Clock + Night Mode</title>
 <style>
-  html,body { height:100%; margin:0; background:#000; color:#fff; font-family:-apple-system, "Helvetica Neue", Arial, sans-serif; }
-  .layout { display:flex; height:100vh; overflow:hidden; }
+html,body{
+  margin:0;background:#000;color:#fff;
+  font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;
+  height:100%;overflow:hidden;
+}
+.layout{display:flex;height:100vh;}
 
-  .half { flex:1; display:flex; align-items:center; justify-content:center; }
+.half{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
+#analog{width:90%;height:90%;}
+#analog svg{width:100%;height:100%;}
 
-  /* analog */
-  #analog { width:90%; height:90%; }
-  #analog svg { width:100%; height:100%; }
-
-  /* digital side */
-  .digital-container {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  padding: 0 3vw;
-  box-sizing: border-box;
-  overflow: hidden;
-  transform: translateX(-5vw); /* ← shift everything slightly left */
+.digital-container{
+  text-align:center;display:flex;flex-direction:column;justify-content:center;
+  height:100%;width:100%;padding:0 3vw;box-sizing:border-box;
+  transform:translateX(-4vw);transition:all 0.8s ease;
 }
 
-  /* outer area that constrains time width so we can fit */
-  .time-area {
-    width:82%;                /* leave a little margin so AM/PM fits */
-    max-width: 680px;        /* guard for large laptops */
-    min-width: 260px;
-    text-align:center;
-    overflow:visible;
-  }
+/* Time */
+.digital-time{
+  font-size:17vw;font-weight:700;margin:0;position:relative;display:inline-block;
+  letter-spacing:-3px;line-height:1;white-space:nowrap;
+}
+.time-main{display:inline-block;transition:color 2s;}
+.colon{display:inline-block;opacity:1;animation:blink 2s infinite ease-in-out;}
+@keyframes blink{
+  0%,100%{opacity:1;}
+  50%{opacity:0.15;}
+}
+.time-ampm{
+  display:inline-block;font-size:3.5vw;margin-left:1vw;vertical-align:super;
+  opacity:0.9;font-weight:500;
+}
 
-  /* Time wrapper: AM/PM sits next to the scaled main time */
-  .digital-time {
-    display:inline-block;
-    position:relative;
-    line-height:1;
-    white-space:nowrap;
-  }
+/* Date */
+.digital-date{
+  margin-top:0.4em;text-align:center;font-size:4.5vw;font-weight:500;white-space:nowrap;
+}
+.digital-date .day{color:#ff4c4c;transition:color 2s;}
 
-  /* the big numbers — we will scale this element with JS when needed */
-  .time-main {
-    display:inline-block;
-    font-weight:800;
-    font-size:18vw;      /* starting size — will be scaled down if it overflows */
-    letter-spacing:-3px;
-    line-height:1;
-    transform-origin:left center;
-    vertical-align:baseline;
-    white-space:nowrap;
-  }
+/* Night overlay */
+#nightOverlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:#000;opacity:0;pointer-events:none;transition:opacity 1s;
+  z-index:10;
+}
 
-  /* AM/PM kept small and outside the scaling, vertically aligned to top */
-  .time-ampm {
-    display:inline-block;
-    font-size:3.2vw;
-    margin-left:0.6vw;
-    vertical-align:super;
-    opacity:0.9;
-    font-weight:500;
-  }
+/* Full-screen invisible toggle area */
+#toggleArea{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:transparent;z-index:11;
+}
 
-  /* Two-line date */
-  .digital-date {
-    margin-top:0.6em;
-    text-align:center;
-    line-height:1.05;
-    font-weight:500;
-  }
-  .digital-date .weekday { display:block; font-size:6vw; }
-  .digital-date .monthline { display:block; font-size:5vw; }
-  .digital-date .day { color:#ff4c4c; }
+@media (max-width:1024px){
+  .digital-time{font-size:18vw;}
+  .time-ampm{font-size:3.8vw;}
+  .digital-date{font-size:5vw;}
+}
 
-  /* responsive tweaks for small screens */
-  @media (max-width:1024px) {
-    .time-main { font-size:20vw; }
-    .time-ampm { font-size:3.6vw; }
-    .digital-date .weekday { font-size:4.6vw; }
-    .digital-date .monthline { font-size:6vw; }
-  }
+/* Centered supersize for blackout */
+.night-active .layout{
+  justify-content:center;align-items:flex-start;flex-direction:column; /* move up */
+  padding-top:8vh; /* adjust upward position */
+}
+.night-active .digital-container{
+  transform:none;text-align:center;padding:0;transition:all 0.8s ease;
+}
+.night-active .digital-time{font-size:24vw;}
+.night-active .digital-date{
+  font-size:5.5vw;margin-top:0.3em;white-space:normal;
+}
+.night-active #analog{display:none;}
+.night-active .time-main{color:#fff;}
+.night-active .digital-date .day{color:#fff;}
+.night-active .colon{animation:none;opacity:0.6;}
 </style>
 </head>
 <body>
-  <div class="layout">
-    <!-- Left: analog -->
-    <div class="half">
-      <div id="analog">
-        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="100" cy="100" r="98" stroke="#333" stroke-width="4" fill="none" />
-          <line id="hour-hand" x1="100" y1="100" x2="100" y2="55" stroke="#fff" stroke-width="6" stroke-linecap="round" />
-          <line id="minute-hand" x1="100" y1="100" x2="100" y2="35" stroke="#fff" stroke-width="4" stroke-linecap="round" />
-          <line id="second-hand" x1="100" y1="100" x2="100" y2="25" stroke="#ff4c4c" stroke-width="2" stroke-linecap="round" />
-          <circle cx="100" cy="100" r="3" fill="#ff4c4c" />
-        </svg>
-      </div>
-    </div>
 
-    <!-- Right: digital -->
-    <div class="half">
-      <div class="digital-container">
-        <div class="time-area" id="timeArea">
-          <div class="digital-time" id="digitalTimeWrap">
-            <span class="time-main" id="timeMain">--:--</span>
-            <span class="time-ampm" id="timeAMPM">AM</span>
-          </div>
-        </div>
+<div id="nightOverlay"></div>
+<div id="toggleArea"></div>
 
-        <div class="digital-date" id="digitalDate">
-          <span class="weekday">Loading...</span>
-          <span class="monthline"><span class="month">---</span> <span class="day">--</span></span>
-        </div>
-      </div>
+<div class="layout">
+  <div class="half">
+    <div id="analog">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="98" stroke="#333" stroke-width="4" fill="none"/>
+        <line id="hour-hand" x1="100" y1="100" x2="100" y2="55" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+        <line id="minute-hand" x1="100" y1="100" x2="100" y2="35" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        <line id="second-hand" x1="100" y1="100" x2="100" y2="25" stroke="#ff4c4c" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="100" cy="100" r="3" fill="#ff4c4c"/>
+      </svg>
     </div>
   </div>
 
+  <div class="half">
+    <div class="digital-container" id="digitalArea">
+      <div class="digital-time" id="digitalTime">
+        <span class="time-main" id="timeMain">--<span class="colon">:</span>--</span>
+        <span class="time-ampm" id="timeAMPM">AM</span>
+      </div>
+      <div class="digital-date" id="digitalDate">Loading date...</div>
+    </div>
+  </div>
+</div>
+
 <script>
-/* Simple, old-friendly helpers */
-function $(id){ return document.getElementById(id); }
+function $(id){return document.getElementById(id);}
+var nightOpacity=0.12;
 
-/* Analog clock (unchanged) */
-function updateAnalog() {
-  var now = new Date();
-  var sec = now.getSeconds();
-  var min = now.getMinutes();
-  var hr = now.getHours() % 12;
-  $('hour-hand').setAttribute('transform','rotate(' + (hr*30 + min/2) + ',100,100)');
-  $('minute-hand').setAttribute('transform','rotate(' + (min*6) + ',100,100)');
-  $('second-hand').setAttribute('transform','rotate(' + (sec*6) + ',100,100)');
+/* analog */
+function updateAnalog(){
+  var n=new Date(),s=n.getSeconds(),m=n.getMinutes(),h=n.getHours()%12;
+  $("hour-hand").setAttribute("transform","rotate("+(h*30+m/2)+",100,100)");
+  $("minute-hand").setAttribute("transform","rotate("+(m*6)+",100,100)");
+  $("second-hand").setAttribute("transform","rotate("+(s*6)+",100,100)");
 }
 
-/* Build date strings manually (old safari safe) */
-var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-var weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-var lastDateString = "";
-
-/* Update digital time and date.
-   Time is updated every second, date only when it changes.
-   We call fitTime() after changing time text so the scale adjusts.
-*/
-function updateDigital() {
-  var now = new Date();
-  var hours = now.getHours();
-  var minutes = now.getMinutes();
-  minutes = (minutes < 10 ? '0' : '') + minutes;
-  var ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12 || 12;
-
-  // update time text (main and ampm)
-  $('timeMain').innerText = hours + ':' + minutes;
-  $('timeAMPM').innerText = ampm;
-
-  // update date only if changed
-  var wd = weekdays[now.getDay()];
-  var mo = months[now.getMonth()];
-  var day = now.getDate();
-  var newDateKey = wd + '|' + mo + '|' + day;
-  if (newDateKey !== lastDateString) {
-    lastDateString = newDateKey;
-    // build two-line date markup, this is done sparingly (only on change)
-    var dateEl = $('digitalDate');
-    // use innerHTML once (safe) because we avoid frequent writes
-    dateEl.innerHTML = '<span class="weekday">' + wd + '</span>' +
-                       '<span class="monthline"><span class="month">' + mo + '</span> <span class="day">' + day + '</span></span>';
+/* digital */
+var lastDate="";
+function updateDigital(){
+  var n=new Date(),h=n.getHours(),m=n.getMinutes(),ampm=h>=12?"PM":"AM";
+  var hh=h%12||12;if(m<10)m="0"+m;
+  $("timeMain").innerHTML=hh+'<span class="colon">:</span>'+m;
+  $("timeAMPM").innerText=ampm;
+  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var wdays=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var key=wdays[n.getDay()]+n.getDate();
+  if(key!=lastDate){
+    $("digitalDate").innerHTML=wdays[n.getDay()]+' '+months[n.getMonth()]+' <span class="day">'+n.getDate()+'</span>';
+    lastDate=key;
   }
-
-  // adjust size to prevent clipping
-  fitTime();
+  checkAutoNight();
 }
 
-/* Fit the time so it never overflows the time-area width.
-   We scale the .time-main element only (AM/PM stays unscaled).
-   Works with old browsers (uses offsetWidth).
-*/
-var lastScale = 1;
-function fitTime() {
-  try {
-    var timeArea = $('timeArea');
-    var main = $('timeMain');
-    var ampm = $('timeAMPM');
-
-    // make sure main has no transform so measurement is accurate
-    main.style.transform = 'none';
-
-    // widths
-    var areaW = timeArea.clientWidth; // available width
-    // measure actual widths
-    var mainW = main.offsetWidth;
-    var ampmW = ampm.offsetWidth + (parseInt(getComputedStyle(ampm).marginLeft,10)||0);
-
-    // small padding so digits don't touch edges
-    var padding = Math.max(6, Math.round(areaW * 0.03));
-    var available = areaW - ampmW - padding;
-
-    var scale = 1;
-    if (mainW > available && mainW > 0) {
-      scale = available / mainW;
-      if (scale < 0.5) scale = 0.5; // keep legible
-    }
-
-    // only update DOM if scale changed meaningfully
-    if (Math.abs(scale - lastScale) > 0.01) {
-      main.style.transform = 'scale(' + scale + ')';
-      main.style.transformOrigin = 'left center';
-      lastScale = scale;
-      // nudge AM/PM vertical position according to scale (keeps it visually aligned)
-      var topOffset = Math.max(-3, Math.round(-3 * scale));
-      ampm.style.top = topOffset + 'vw';
-    }
-  } catch (e) {
-    // fail silently on weird old browsers
-  }
+/* night mode */
+var nightActive=false,manualToggle=false;
+function enableNight(){
+  if(nightActive)return;
+  nightActive=true;
+  document.body.className="night-active";
+  $("nightOverlay").style.opacity=1-nightOpacity;
+}
+function disableNight(){
+  if(!nightActive)return;
+  nightActive=false;
+  document.body.className="";
+  $("nightOverlay").style.opacity=0;
 }
 
-/* initialization */
-setInterval(updateAnalog, 1000);
-setInterval(updateDigital, 1000);
-window.addEventListener ? window.addEventListener('resize', fitTime) : window.onresize = fitTime;
+/* auto blackout 10:20pm–6:30am */
+function checkAutoNight(){
+  if(manualToggle)return;
+  var n=new Date(),h=n.getHours(),m=n.getMinutes();
+  var mins=h*60+m,start=22*60+20,end=6*60+30;
+  if(mins>=start||mins<end){enableNight();}
+  else{disableNight();}
+}
 
-updateAnalog();
-updateDigital();
+/* full-screen manual toggle */
+$("toggleArea").onclick=function(){
+  manualToggle=true;
+  if(nightActive){disableNight();}else{enableNight();}
+};
+
+/* loops */
+setInterval(updateAnalog,1000);
+setInterval(updateDigital,1000);
+updateAnalog();updateDigital();
 </script>
 </body>
 </html>
