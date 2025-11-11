@@ -15,7 +15,6 @@ body {
   overflow: hidden;
 }
 
-/* Split layout */
 .half {
   flex: 1;
   display: flex;
@@ -33,7 +32,7 @@ body {
   height: 100%;
 }
 
-/* Right panel */
+/* Right side */
 .digital-container {
   text-align: center;
   display: flex;
@@ -45,7 +44,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Time layout */
+/* Time display */
 .digital-time {
   font-size: 13vw;
   font-weight: 600;
@@ -65,10 +64,11 @@ body {
   top: 5%;
   right: -1.8em;
   font-size: 2.2vw;
+  opacity: 0.8;
   font-weight: 400;
 }
 
-/* Date styling */
+/* Date */
 .digital-date {
   margin-top: 0.5em;
   font-size: 4.5vw;
@@ -81,12 +81,11 @@ body {
   color: #ff4c4c;
 }
 
-/* Quote section */
+/* Quote */
 .quote {
   font-size: 2.8vw;
-  font-style: normal;
   color: #fff;
-  margin-top: 2.5em;
+  margin-top: 1em;
   padding: 0 1vw;
 }
 
@@ -97,7 +96,6 @@ body {
   margin-top: 0.3em;
 }
 
-/* Adjust for smaller screens */
 @media (max-width: 1024px) {
   .digital-time { font-size: 14vw; }
   .time-ampm { font-size: 3vw; right: -2em; }
@@ -109,7 +107,7 @@ body {
 </head>
 <body>
 
-<!-- Left: Analog Clock -->
+<!-- Left: Analog clock -->
 <div class="half">
   <div id="analog">
     <svg viewBox="0 0 200 200">
@@ -122,7 +120,7 @@ body {
   </div>
 </div>
 
-<!-- Right: Time, Date, and Quote -->
+<!-- Right: Digital time, date, and quote -->
 <div class="half">
   <div class="digital-container">
     <div>
@@ -152,7 +150,7 @@ function updateAnalog() {
   document.getElementById('second-hand').setAttribute('transform', 'rotate(' + (sec*6) + ',100,100)');
 }
 
-// Digital time + date
+// Time + date without toLocaleString (for old iPad compatibility)
 function updateDigital() {
   var now = new Date();
   var hours = now.getHours();
@@ -164,19 +162,23 @@ function updateDigital() {
   document.getElementById('timeMain').textContent = hours + ':' + minutes;
   document.getElementById('timeAMPM').textContent = ampm;
 
-  var month = now.toLocaleString('en-US', { month: 'short' });
-  var weekday = now.toLocaleString('en-US', { weekday: 'long' });
+  // Manual month/day/weekday construction
+  var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  var weekday = weekdays[now.getDay()];
+  var month = months[now.getMonth()];
   var day = now.getDate();
+
   document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
 }
 
-// Quote rotation
+// Quotes (car people + car movies only)
 var quotes = [
   { text: "You must take the chances to go faster.", author: "Ayrton Senna" },
   { text: "If everything seems under control, you’re not going fast enough.", author: "Mario Andretti" },
   { text: "Racing is life. Anything before or after is just waiting.", author: "Steve McQueen" },
   { text: "Straight roads are for fast cars, turns are for fast drivers.", author: "Colin McRae" },
-  { text: "Ask any racer, any real racer. It doesn’t matter if you win by an inch or a mile; winning’s winning.", author: "Dominic Toretto" },
+  { text: "Ask any racer. It doesn’t matter if you win by an inch or a mile; winning’s winning.", author: "Dominic Toretto" },
   { text: "You win some, you lose some, but you live to fight another day.", author: "Sean Boswell" },
   { text: "It’s not how you stand by your car, it’s how you race your car.", author: "Leon" },
   { text: "Speed has never killed anyone. Suddenly becoming stationary, that’s what gets you.", author: "Jeremy Clarkson" },
@@ -184,21 +186,19 @@ var quotes = [
   { text: "The winner ain’t the one with the fastest car — it’s the one who refuses to lose.", author: "Dale Earnhardt" },
   { text: "To achieve anything in this game, you must be prepared to dabble in the boundary of disaster.", author: "Stirling Moss" },
   { text: "It’s not always about speed. It’s about control.", author: "Han Lue" },
-  { text: "When you’re racing, it’s life. Anything that happens before or after is just waiting.", author: "Steve McQueen" },
   { text: "You don’t need to understand something to enjoy it. The feeling of driving fast is universal.", author: "Lewis Hamilton" },
   { text: "Race cars are neither beautiful nor ugly. They become beautiful when they win.", author: "Enzo Ferrari" },
   { text: "You can’t cheat death, but you can make him work for it.", author: "Paul Walker" },
   { text: "The car is an extension of who you are. It reflects your style and your attitude.", author: "Ken Block" }
 ];
 
-function updateQuote(){
+function updateQuote() {
   var now = new Date();
   var index = now.getHours() % quotes.length;
   var q = quotes[index];
   document.getElementById('quoteText').textContent = '"' + q.text + '"';
   var authorEl = document.getElementById('quoteAuthor');
   authorEl.textContent = q.author;
-  authorEl.style.fontStyle = 'italic';
 }
 
 // Initialize everything
