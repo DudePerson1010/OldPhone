@@ -32,6 +32,7 @@ body {
   height: 100%;
 }
 
+/* Right (digital) side */
 .digital-container {
   text-align: center;
   display: flex;
@@ -39,19 +40,24 @@ body {
   justify-content: center;
   height: 100%;
   width: 100%;
-  padding: 2vh 3vw;
+  padding: 0 2vw;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
-/* Supersized Time */
+/* Time */
 .digital-time {
-  font-size: 20vw;
+  font-size: 17vw; /* slightly smaller to avoid clipping */
   font-weight: 700;
   margin: 0;
   position: relative;
   display: inline-block;
   letter-spacing: -4px;
+  line-height: 1;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  white-space: nowrap; /* prevent wrapping */
+  transform: scale(0.95);
+  transform-origin: center;
 }
 
 .time-main {
@@ -59,20 +65,22 @@ body {
 }
 
 .time-ampm {
-  position: absolute;
-  top: 5%;
-  right: -1.2em;
+  position: relative;
+  top: -3vw;
+  margin-left: 1vw;
   font-size: 3vw;
   opacity: 0.8;
   font-weight: 400;
+  vertical-align: top;
 }
 
 /* Date */
 .digital-date {
-  margin-top: 0.4em;
-  font-size: 5vw;
+  margin-top: 0.2em;
+  font-size: 4vw;
   color: #fff;
   font-weight: 500;
+  white-space: nowrap; /* prevent wrapping on iPad */
 }
 
 .digital-date .day {
@@ -80,15 +88,15 @@ body {
 }
 
 @media (max-width: 1024px) {
-  .digital-time { font-size: 22vw; }
-  .time-ampm { font-size: 4vw; right: -1.4em; }
-  .digital-date { font-size: 7vw; }
+  .digital-time { font-size: 18vw; transform: scale(0.9); }
+  .time-ampm { font-size: 3.5vw; top: -3.5vw; }
+  .digital-date { font-size: 5vw; }
 }
 </style>
 </head>
 <body>
 
-<!-- Left half: Analog clock -->
+<!-- Left: Analog clock -->
 <div class="half">
   <div id="analog">
     <svg viewBox="0 0 200 200">
@@ -101,7 +109,7 @@ body {
   </div>
 </div>
 
-<!-- Right half: Digital time + date -->
+<!-- Right: Digital time + date -->
 <div class="half">
   <div class="digital-container">
     <div class="digital-time">
@@ -130,9 +138,9 @@ function updateDigital() {
   var now = new Date();
   var hours = now.getHours();
   var minutes = now.getMinutes();
-  minutes = (minutes<10?'0':'')+minutes;
-  var ampm = hours>=12?'PM':'AM';
-  hours = hours%12||12;
+  minutes = (minutes < 10 ? '0' : '') + minutes;
+  var ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
 
   document.getElementById('timeMain').innerText = hours + ':' + minutes;
   document.getElementById('timeAMPM').innerText = ampm;
@@ -145,14 +153,15 @@ function updateDigital() {
   var newDateStr = weekday + ', ' + month + ' ' + day;
 
   if (newDateStr !== lastDateString) {
-    document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
+    document.getElementById('digitalDate').innerHTML =
+      weekday + ', ' + month + ' <span class="day">' + day + '</span>';
     lastDateString = newDateStr;
   }
 }
 
 // Start updates
-setInterval(updateAnalog,1000);
-setInterval(updateDigital,1000);
+setInterval(updateAnalog, 1000);
+setInterval(updateDigital, 1000);
 updateAnalog();
 updateDigital();
 </script>
