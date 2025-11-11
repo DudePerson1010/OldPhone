@@ -32,7 +32,7 @@ body {
   height: 100%;
 }
 
-/* Right side */
+/* Digital side */
 .digital-container {
   text-align: center;
   display: flex;
@@ -44,15 +44,14 @@ body {
   box-sizing: border-box;
 }
 
-/* Time display */
 .digital-time {
   font-size: 13vw;
   font-weight: 600;
   margin: 0;
   position: relative;
   display: inline-block;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   letter-spacing: -3px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .time-main {
@@ -68,20 +67,17 @@ body {
   font-weight: 400;
 }
 
-/* Date */
 .digital-date {
   margin-top: 0.5em;
   font-size: 4.5vw;
   color: #fff;
   font-weight: 500;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-.digital-date span.day {
+.digital-date .day {
   color: #ff4c4c;
 }
 
-/* Quote */
 .quote {
   font-size: 2.8vw;
   color: #fff;
@@ -107,7 +103,6 @@ body {
 </head>
 <body>
 
-<!-- Left: Analog clock -->
 <div class="half">
   <div id="analog">
     <svg viewBox="0 0 200 200">
@@ -120,11 +115,10 @@ body {
   </div>
 </div>
 
-<!-- Right: Digital time, date, and quote -->
 <div class="half">
   <div class="digital-container">
     <div>
-      <div class="digital-time" id="digitalTime">
+      <div class="digital-time">
         <span class="time-main" id="timeMain">--:--</span>
         <span class="time-ampm" id="timeAMPM">AM</span>
       </div>
@@ -145,34 +139,38 @@ function updateAnalog() {
   var sec = now.getSeconds();
   var min = now.getMinutes();
   var hr = now.getHours() % 12;
-  document.getElementById('hour-hand').setAttribute('transform', 'rotate(' + (hr*30 + min/2) + ',100,100)');
-  document.getElementById('minute-hand').setAttribute('transform', 'rotate(' + (min*6) + ',100,100)');
-  document.getElementById('second-hand').setAttribute('transform', 'rotate(' + (sec*6) + ',100,100)');
+  document.getElementById('hour-hand').setAttribute('transform','rotate('+(hr*30+min/2)+',100,100)');
+  document.getElementById('minute-hand').setAttribute('transform','rotate('+(min*6)+',100,100)');
+  document.getElementById('second-hand').setAttribute('transform','rotate('+(sec*6)+',100,100)');
 }
 
-// Time + date without toLocaleString (for old iPad compatibility)
+var lastDateString = "";
 function updateDigital() {
   var now = new Date();
   var hours = now.getHours();
   var minutes = now.getMinutes();
-  minutes = (minutes < 10 ? '0' : '') + minutes;
-  var ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12 || 12;
+  minutes = (minutes<10?'0':'')+minutes;
+  var ampm = hours>=12?'PM':'AM';
+  hours = hours%12||12;
 
-  document.getElementById('timeMain').textContent = hours + ':' + minutes;
-  document.getElementById('timeAMPM').textContent = ampm;
+  document.getElementById('timeMain').innerText = hours + ':' + minutes;
+  document.getElementById('timeAMPM').innerText = ampm;
 
-  // Manual month/day/weekday construction
-  var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  var weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  var weekday = weekdays[now.getDay()];
-  var month = months[now.getMonth()];
-  var day = now.getDate();
+  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var weekdays=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var weekday=weekdays[now.getDay()];
+  var month=months[now.getMonth()];
+  var day=now.getDate();
+  var newDateStr = weekday + ', ' + month + ' ' + day;
 
-  document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
+  // Only rebuild if date changes
+  if (newDateStr !== lastDateString) {
+    document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
+    lastDateString = newDateStr;
+  }
 }
 
-// Quotes (car people + car movies only)
+// Quotes
 var quotes = [
   { text: "You must take the chances to go faster.", author: "Ayrton Senna" },
   { text: "If everything seems under control, you’re not going fast enough.", author: "Mario Andretti" },
@@ -196,18 +194,17 @@ function updateQuote() {
   var now = new Date();
   var index = now.getHours() % quotes.length;
   var q = quotes[index];
-  document.getElementById('quoteText').textContent = '"' + q.text + '"';
-  var authorEl = document.getElementById('quoteAuthor');
-  authorEl.textContent = q.author;
+  document.getElementById('quoteText').innerText = '"' + q.text + '"';
+  document.getElementById('quoteAuthor').innerText = q.author;
 }
 
-// Initialize everything
-setInterval(updateAnalog, 1000);
-setInterval(updateDigital, 1000);
+setInterval(updateAnalog,1000);
+setInterval(updateDigital,1000);
+setInterval(updateQuote,60*60*1000);
+
 updateAnalog();
 updateDigital();
 updateQuote();
 </script>
-
 </body>
 </html>
