@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no">
-<title>Clock + Quote Display</title>
+<title>Minimal Clock Display</title>
 <style>
 body {
   margin: 0;
@@ -32,7 +32,6 @@ body {
   height: 100%;
 }
 
-/* Digital side */
 .digital-container {
   text-align: center;
   display: flex;
@@ -44,13 +43,14 @@ body {
   box-sizing: border-box;
 }
 
+/* Supersized Time */
 .digital-time {
-  font-size: 13vw;
-  font-weight: 600;
+  font-size: 20vw;
+  font-weight: 700;
   margin: 0;
   position: relative;
   display: inline-block;
-  letter-spacing: -3px;
+  letter-spacing: -4px;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -61,15 +61,16 @@ body {
 .time-ampm {
   position: absolute;
   top: 5%;
-  right: -1.8em;
-  font-size: 2.2vw;
+  right: -1.2em;
+  font-size: 3vw;
   opacity: 0.8;
   font-weight: 400;
 }
 
+/* Date */
 .digital-date {
-  margin-top: 0.5em;
-  font-size: 4.5vw;
+  margin-top: 0.4em;
+  font-size: 5vw;
   color: #fff;
   font-weight: 500;
 }
@@ -78,31 +79,16 @@ body {
   color: #ff4c4c;
 }
 
-.quote {
-  font-size: 2.8vw;
-  color: #fff;
-  margin-top: 1em;
-  padding: 0 1vw;
-}
-
-.quote-author {
-  font-size: 2vw;
-  font-style: italic;
-  color: #ccc;
-  margin-top: 0.3em;
-}
-
 @media (max-width: 1024px) {
-  .digital-time { font-size: 14vw; }
-  .time-ampm { font-size: 3vw; right: -2em; }
-  .digital-date { font-size: 6vw; }
-  .quote { font-size: 3.6vw; }
-  .quote-author { font-size: 2.5vw; }
+  .digital-time { font-size: 22vw; }
+  .time-ampm { font-size: 4vw; right: -1.4em; }
+  .digital-date { font-size: 7vw; }
 }
 </style>
 </head>
 <body>
 
+<!-- Left half: Analog clock -->
 <div class="half">
   <div id="analog">
     <svg viewBox="0 0 200 200">
@@ -115,20 +101,14 @@ body {
   </div>
 </div>
 
+<!-- Right half: Digital time + date -->
 <div class="half">
   <div class="digital-container">
-    <div>
-      <div class="digital-time">
-        <span class="time-main" id="timeMain">--:--</span>
-        <span class="time-ampm" id="timeAMPM">AM</span>
-      </div>
-      <div class="digital-date" id="digitalDate">Loading date...</div>
+    <div class="digital-time">
+      <span class="time-main" id="timeMain">--:--</span>
+      <span class="time-ampm" id="timeAMPM">AM</span>
     </div>
-
-    <div>
-      <div class="quote" id="quoteText">Loading quote...</div>
-      <div class="quote-author" id="quoteAuthor"></div>
-    </div>
+    <div class="digital-date" id="digitalDate">Loading date...</div>
   </div>
 </div>
 
@@ -144,6 +124,7 @@ function updateAnalog() {
   document.getElementById('second-hand').setAttribute('transform','rotate('+(sec*6)+',100,100)');
 }
 
+// Digital clock + date
 var lastDateString = "";
 function updateDigital() {
   var now = new Date();
@@ -163,48 +144,18 @@ function updateDigital() {
   var day=now.getDate();
   var newDateStr = weekday + ', ' + month + ' ' + day;
 
-  // Only rebuild if date changes
   if (newDateStr !== lastDateString) {
     document.getElementById('digitalDate').innerHTML = weekday + ', ' + month + ' <span class="day">' + day + '</span>';
     lastDateString = newDateStr;
   }
 }
 
-// Quotes
-var quotes = [
-  { text: "You must take the chances to go faster.", author: "Ayrton Senna" },
-  { text: "If everything seems under control, you’re not going fast enough.", author: "Mario Andretti" },
-  { text: "Racing is life. Anything before or after is just waiting.", author: "Steve McQueen" },
-  { text: "Straight roads are for fast cars, turns are for fast drivers.", author: "Colin McRae" },
-  { text: "Ask any racer. It doesn’t matter if you win by an inch or a mile; winning’s winning.", author: "Dominic Toretto" },
-  { text: "You win some, you lose some, but you live to fight another day.", author: "Sean Boswell" },
-  { text: "It’s not how you stand by your car, it’s how you race your car.", author: "Leon" },
-  { text: "Speed has never killed anyone. Suddenly becoming stationary, that’s what gets you.", author: "Jeremy Clarkson" },
-  { text: "I live my life a quarter mile at a time.", author: "Dominic Toretto" },
-  { text: "The winner ain’t the one with the fastest car — it’s the one who refuses to lose.", author: "Dale Earnhardt" },
-  { text: "To achieve anything in this game, you must be prepared to dabble in the boundary of disaster.", author: "Stirling Moss" },
-  { text: "It’s not always about speed. It’s about control.", author: "Han Lue" },
-  { text: "You don’t need to understand something to enjoy it. The feeling of driving fast is universal.", author: "Lewis Hamilton" },
-  { text: "Race cars are neither beautiful nor ugly. They become beautiful when they win.", author: "Enzo Ferrari" },
-  { text: "You can’t cheat death, but you can make him work for it.", author: "Paul Walker" },
-  { text: "The car is an extension of who you are. It reflects your style and your attitude.", author: "Ken Block" }
-];
-
-function updateQuote() {
-  var now = new Date();
-  var index = now.getHours() % quotes.length;
-  var q = quotes[index];
-  document.getElementById('quoteText').innerText = '"' + q.text + '"';
-  document.getElementById('quoteAuthor').innerText = q.author;
-}
-
+// Start updates
 setInterval(updateAnalog,1000);
 setInterval(updateDigital,1000);
-setInterval(updateQuote,60*60*1000);
-
 updateAnalog();
 updateDigital();
-updateQuote();
 </script>
+
 </body>
 </html>
