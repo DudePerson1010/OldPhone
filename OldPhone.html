@@ -3,82 +3,122 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no" />
-<title>Clock + Night Mode</title>
+<title>Clock + Night Mode — No Colon Animation</title>
 <style>
+/* ---------- Basic layout ---------- */
 html,body{
-  margin:0;background:#000;color:#fff;
+  margin:0;
+  background:#000;
+  color:#fff;
   font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;
-  height:100%;overflow:hidden;
+  height:100%;
+  overflow:hidden;
 }
 .layout{display:flex;height:100vh;}
 
+/* halves */
 .half{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
 #analog{width:90%;height:90%;}
 #analog svg{width:100%;height:100%;}
 
+/* ---------- Digital container ---------- */
 .digital-container{
-  text-align:center;display:flex;flex-direction:column;justify-content:center;
-  height:100%;width:100%;padding:0 3vw;box-sizing:border-box;
-  transform:translateX(-4vw);transition:all 0.8s ease;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100%;
+  width:100%;
+  padding:0 3vw;
+  box-sizing:border-box;
+  transform:translateX(-4vw);
+  transition:all 0.8s ease;
 }
 
-/* Time */
+/* ---------- Time styling ---------- */
 .digital-time{
-  font-size:17vw;font-weight:700;margin:0;position:relative;display:inline-block;
-  letter-spacing:-3px;line-height:1;white-space:nowrap;
+  font-size:17vw;
+  font-weight:700;
+  margin:0;
+  position:relative;
+  display:inline-block;
+  letter-spacing:-3px;
+  line-height:1;
+  white-space:nowrap;
 }
-.time-main{display:inline-block;transition:color 2s;}
-.colon{display:inline-block;opacity:1;animation:blink 2s infinite ease-in-out;}
-@keyframes blink{
-  0%,100%{opacity:1;}
-  50%{opacity:0.15;}
+.time-main{display:inline-block;transition:color 1.5s;}
+.colon{
+  display:inline-block;
+  opacity:1; /* static colon, no animation */
 }
+/* AM/PM tighter spacing */
 .time-ampm{
-  display:inline-block;font-size:3.5vw;margin-left:1vw;vertical-align:super;
-  opacity:0.9;font-weight:500;
+  display:inline-block;
+  font-size:3vw;
+  margin-left:0.2vw;
+  vertical-align:super;
+  opacity:0.9;
+  font-weight:500;
 }
 
-/* Date */
+/* ---------- Date styling ---------- */
 .digital-date{
-  margin-top:0.4em;text-align:center;font-size:4.5vw;font-weight:500;white-space:nowrap;
+  margin-top:0.4em;
+  text-align:center;
+  font-size:4.5vw;
+  font-weight:500;
+  white-space:nowrap;
 }
-.digital-date .day{color:#ff4c4c;transition:color 2s;}
+.digital-date .day{ color:#ff4c4c; transition:color 1.5s; }
 
-/* Night overlay */
+/* overlay & toggle */
 #nightOverlay{
   position:fixed;top:0;left:0;width:100%;height:100%;
   background:#000;opacity:0;pointer-events:none;transition:opacity 1s;
   z-index:10;
 }
-
-/* Full-screen invisible toggle area */
 #toggleArea{
   position:fixed;top:0;left:0;width:100%;height:100%;
   background:transparent;z-index:11;
 }
 
+/* media */
 @media (max-width:1024px){
   .digital-time{font-size:18vw;}
-  .time-ampm{font-size:3.8vw;}
+  .time-ampm{font-size:3.6vw;}
   .digital-date{font-size:5vw;}
 }
 
-/* Centered supersize for blackout */
+/* ---------- Night-mode centered & moved up ---------- */
+:root {
+  --night-top: -100vh; /* adjust to move time/date up in night mode */
+}
 .night-active .layout{
-  justify-content:center;align-items:flex-start;flex-direction:column; /* move up */
-  padding-top:8vh; /* adjust upward position */
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
+  height:85vh;
+  padding-top:var(--night-top);
 }
+
+/* night visuals */
 .night-active .digital-container{
-  transform:none;text-align:center;padding:0;transition:all 0.8s ease;
+  transform:none;
+  text-align:center;
+  padding:0;
+  transition:all 0.8s ease;
 }
-.night-active .digital-time{font-size:24vw;}
+.night-active .digital-time{ font-size:24vw; }
 .night-active .digital-date{
-  font-size:5.5vw;margin-top:0.3em;white-space:normal;
+  font-size:5.5vw;
+  margin-top:0.3em;
+  white-space:nowrap;
 }
-.night-active #analog{display:none;}
-.night-active .time-main{color:#fff;}
-.night-active .digital-date .day{color:#fff;}
-.night-active .colon{animation:none;opacity:0.6;}
+.night-active #analog{ display:none; }
+.night-active .time-main{ color:#fff; }
+.night-active .digital-date .day{ color:#fff; }
 </style>
 </head>
 <body>
@@ -87,6 +127,7 @@ html,body{
 <div id="toggleArea"></div>
 
 <div class="layout">
+  <!-- left half -->
   <div class="half">
     <div id="analog">
       <svg viewBox="0 0 200 200">
@@ -99,6 +140,7 @@ html,body{
     </div>
   </div>
 
+  <!-- right half -->
   <div class="half">
     <div class="digital-container" id="digitalArea">
       <div class="digital-time" id="digitalTime">
@@ -111,35 +153,45 @@ html,body{
 </div>
 
 <script>
-function $(id){return document.getElementById(id);}
-var nightOpacity=0.12;
+function $(id){ return document.getElementById(id); }
 
-/* analog */
-function updateAnalog(){
-  var n=new Date(),s=n.getSeconds(),m=n.getMinutes(),h=n.getHours()%12;
-  $("hour-hand").setAttribute("transform","rotate("+(h*30+m/2)+",100,100)");
+/* opacity of digits during blackout */
+var nightOpacity = 0.05;
+
+/* smooth analog */
+function smoothAnalog(){
+  var now = new Date();
+  var s = now.getSeconds() + now.getMilliseconds()/1000;
+  var m = now.getMinutes() + s/60;
+  var h = now.getHours()%12 + m/60;
+  $("hour-hand").setAttribute("transform","rotate("+(h*30)+",100,100)");
   $("minute-hand").setAttribute("transform","rotate("+(m*6)+",100,100)");
   $("second-hand").setAttribute("transform","rotate("+(s*6)+",100,100)");
+  requestAnimationFrame(smoothAnalog);
 }
 
-/* digital */
+/* update digital time */
 var lastDate="";
 function updateDigital(){
-  var n=new Date(),h=n.getHours(),m=n.getMinutes(),ampm=h>=12?"PM":"AM";
-  var hh=h%12||12;if(m<10)m="0"+m;
-  $("timeMain").innerHTML=hh+'<span class="colon">:</span>'+m;
+  var now=new Date();
+  var H=now.getHours(),M=now.getMinutes();
+  var ampm=H>=12?"PM":"AM";
+  var hh=H%12||12;
+  if(M<10)M="0"+M;
+  $("timeMain").innerHTML=hh+'<span class="colon">:</span>'+M;
   $("timeAMPM").innerText=ampm;
+
   var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var wdays=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  var key=wdays[n.getDay()]+n.getDate();
-  if(key!=lastDate){
-    $("digitalDate").innerHTML=wdays[n.getDay()]+' '+months[n.getMonth()]+' <span class="day">'+n.getDate()+'</span>';
+  var key=wdays[now.getDay()]+"|"+now.getDate();
+  if(key!==lastDate){
+    $("digitalDate").innerHTML=wdays[now.getDay()]+" "+months[now.getMonth()]+" <span class='day'>"+now.getDate()+"</span>";
     lastDate=key;
   }
   checkAutoNight();
 }
 
-/* night mode */
+/* night mode control */
 var nightActive=false,manualToggle=false;
 function enableNight(){
   if(nightActive)return;
@@ -154,25 +206,24 @@ function disableNight(){
   $("nightOverlay").style.opacity=0;
 }
 
-/* auto blackout 10:20pm–6:30am */
+/* auto 10:20pm–6:30am */
 function checkAutoNight(){
   if(manualToggle)return;
-  var n=new Date(),h=n.getHours(),m=n.getMinutes();
-  var mins=h*60+m,start=22*60+20,end=6*60+30;
-  if(mins>=start||mins<end){enableNight();}
-  else{disableNight();}
+  var now=new Date();
+  var mins=now.getHours()*60+now.getMinutes();
+  var start=22*60+20,end=6*60+30;
+  if(mins>=start||mins<end)enableNight();else disableNight();
 }
 
-/* full-screen manual toggle */
+/* manual toggle */
 $("toggleArea").onclick=function(){
   manualToggle=true;
-  if(nightActive){disableNight();}else{enableNight();}
+  if(nightActive)disableNight();else enableNight();
 };
 
-/* loops */
-setInterval(updateAnalog,1000);
+requestAnimationFrame(smoothAnalog);
 setInterval(updateDigital,1000);
-updateAnalog();updateDigital();
+updateDigital();
 </script>
 </body>
 </html>
