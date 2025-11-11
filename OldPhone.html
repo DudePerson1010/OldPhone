@@ -1,139 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no">
-<title>Minimal Clock Display</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1024, height=768, initial-scale=1.0, user-scalable=no" />
+<title>Minimal Clock — Fit & Two-line Date</title>
 <style>
-body {
-  margin: 0;
-  background-color: #000;
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
+  html,body { height:100%; margin:0; background:#000; color:#fff; font-family:-apple-system, "Helvetica Neue", Arial, sans-serif; }
+  .layout { display:flex; height:100vh; overflow:hidden; }
 
-.half {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .half { flex:1; display:flex; align-items:center; justify-content:center; }
 
-#analog {
-  width: 90%;
-  height: 90%;
-}
+  /* analog */
+  #analog { width:90%; height:90%; }
+  #analog svg { width:100%; height:100%; }
 
-#analog svg {
-  width: 100%;
-  height: 100%;
-}
+  /* digital side */
+  .digital-container {
+    box-sizing:border-box;
+    padding:0 3vw;
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
 
-/* Right (digital) side */
-.digital-container {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  padding: 0 2vw;
-  box-sizing: border-box;
-  overflow: hidden;
-}
+  /* outer area that constrains time width so we can fit */
+  .time-area {
+    width:82%;                /* leave a little margin so AM/PM fits */
+    max-width: 680px;        /* guard for large laptops */
+    min-width: 260px;
+    text-align:center;
+    overflow:visible;
+  }
 
-/* Time */
-.digital-time {
-  font-size: 17vw; /* slightly smaller to avoid clipping */
-  font-weight: 700;
-  margin: 0;
-  position: relative;
-  display: inline-block;
-  letter-spacing: -4px;
-  line-height: 1;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  white-space: nowrap; /* prevent wrapping */
-  transform: scale(0.95);
-  transform-origin: center;
-}
+  /* Time wrapper: AM/PM sits next to the scaled main time */
+  .digital-time {
+    display:inline-block;
+    position:relative;
+    line-height:1;
+    white-space:nowrap;
+  }
 
-.time-main {
-  display: inline-block;
-}
+  /* the big numbers — we will scale this element with JS when needed */
+  .time-main {
+    display:inline-block;
+    font-weight:800;
+    font-size:18vw;      /* starting size — will be scaled down if it overflows */
+    letter-spacing:-3px;
+    line-height:1;
+    transform-origin:left center;
+    vertical-align:baseline;
+    white-space:nowrap;
+  }
 
-.time-ampm {
-  position: relative;
-  top: -3vw;
-  margin-left: 1vw;
-  font-size: 3vw;
-  opacity: 0.8;
-  font-weight: 400;
-  vertical-align: top;
-}
+  /* AM/PM kept small and outside the scaling, vertically aligned to top */
+  .time-ampm {
+    display:inline-block;
+    font-size:3.2vw;
+    margin-left:0.6vw;
+    vertical-align:super;
+    opacity:0.9;
+    font-weight:500;
+  }
 
-/* Date */
-.digital-date {
-  margin-top: 0.2em;
-  font-size: 4vw;
-  color: #fff;
-  font-weight: 500;
-  white-space: nowrap; /* prevent wrapping on iPad */
-}
+  /* Two-line date */
+  .digital-date {
+    margin-top:0.6em;
+    text-align:center;
+    line-height:1.05;
+    font-weight:500;
+  }
+  .digital-date .weekday { display:block; font-size:4vw; }
+  .digital-date .monthline { display:block; font-size:5vw; }
+  .digital-date .day { color:#ff4c4c; }
 
-.digital-date .day {
-  color: #ff4c4c;
-}
-
-@media (max-width: 1024px) {
-  .digital-time { font-size: 18vw; transform: scale(0.9); }
-  .time-ampm { font-size: 3.5vw; top: -3.5vw; }
-  .digital-date { font-size: 5vw; }
-}
+  /* responsive tweaks for small screens */
+  @media (max-width:1024px) {
+    .time-main { font-size:20vw; }
+    .time-ampm { font-size:3.6vw; }
+    .digital-date .weekday { font-size:4.6vw; }
+    .digital-date .monthline { font-size:6vw; }
+  }
 </style>
 </head>
 <body>
-
-<!-- Left: Analog clock -->
-<div class="half">
-  <div id="analog">
-    <svg viewBox="0 0 200 200">
-      <circle cx="100" cy="100" r="98" stroke="#333" stroke-width="4" fill="none" />
-      <line id="hour-hand" x1="100" y1="100" x2="100" y2="55" stroke="#fff" stroke-width="6" stroke-linecap="round" />
-      <line id="minute-hand" x1="100" y1="100" x2="100" y2="35" stroke="#fff" stroke-width="4" stroke-linecap="round" />
-      <line id="second-hand" x1="100" y1="100" x2="100" y2="25" stroke="#ff4c4c" stroke-width="2" stroke-linecap="round" />
-      <circle cx="100" cy="100" r="3" fill="#ff4c4c" />
-    </svg>
-  </div>
-</div>
-
-<!-- Right: Digital time + date -->
-<div class="half">
-  <div class="digital-container">
-    <div class="digital-time">
-      <span class="time-main" id="timeMain">--:--</span>
-      <span class="time-ampm" id="timeAMPM">AM</span>
+  <div class="layout">
+    <!-- Left: analog -->
+    <div class="half">
+      <div id="analog">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="98" stroke="#333" stroke-width="4" fill="none" />
+          <line id="hour-hand" x1="100" y1="100" x2="100" y2="55" stroke="#fff" stroke-width="6" stroke-linecap="round" />
+          <line id="minute-hand" x1="100" y1="100" x2="100" y2="35" stroke="#fff" stroke-width="4" stroke-linecap="round" />
+          <line id="second-hand" x1="100" y1="100" x2="100" y2="25" stroke="#ff4c4c" stroke-width="2" stroke-linecap="round" />
+          <circle cx="100" cy="100" r="3" fill="#ff4c4c" />
+        </svg>
+      </div>
     </div>
-    <div class="digital-date" id="digitalDate">Loading date...</div>
+
+    <!-- Right: digital -->
+    <div class="half">
+      <div class="digital-container">
+        <div class="time-area" id="timeArea">
+          <div class="digital-time" id="digitalTimeWrap">
+            <span class="time-main" id="timeMain">--:--</span>
+            <span class="time-ampm" id="timeAMPM">AM</span>
+          </div>
+        </div>
+
+        <div class="digital-date" id="digitalDate">
+          <span class="weekday">Loading...</span>
+          <span class="monthline"><span class="month">---</span> <span class="day">--</span></span>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
 
 <script>
-// Analog clock
+/* Simple, old-friendly helpers */
+function $(id){ return document.getElementById(id); }
+
+/* Analog clock (unchanged) */
 function updateAnalog() {
   var now = new Date();
   var sec = now.getSeconds();
   var min = now.getMinutes();
   var hr = now.getHours() % 12;
-  document.getElementById('hour-hand').setAttribute('transform','rotate('+(hr*30+min/2)+',100,100)');
-  document.getElementById('minute-hand').setAttribute('transform','rotate('+(min*6)+',100,100)');
-  document.getElementById('second-hand').setAttribute('transform','rotate('+(sec*6)+',100,100)');
+  $('hour-hand').setAttribute('transform','rotate(' + (hr*30 + min/2) + ',100,100)');
+  $('minute-hand').setAttribute('transform','rotate(' + (min*6) + ',100,100)');
+  $('second-hand').setAttribute('transform','rotate(' + (sec*6) + ',100,100)');
 }
 
-// Digital clock + date
+/* Build date strings manually (old safari safe) */
+var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var weekdays = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
 var lastDateString = "";
+
+/* Update digital time and date.
+   Time is updated every second, date only when it changes.
+   We call fitTime() after changing time text so the scale adjusts.
+*/
 function updateDigital() {
   var now = new Date();
   var hours = now.getHours();
@@ -142,29 +151,79 @@ function updateDigital() {
   var ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12 || 12;
 
-  document.getElementById('timeMain').innerText = hours + ':' + minutes;
-  document.getElementById('timeAMPM').innerText = ampm;
+  // update time text (main and ampm)
+  $('timeMain').innerText = hours + ':' + minutes;
+  $('timeAMPM').innerText = ampm;
 
-  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  var weekdays=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  var weekday=weekdays[now.getDay()];
-  var month=months[now.getMonth()];
-  var day=now.getDate();
-  var newDateStr = weekday + ', ' + month + ' ' + day;
+  // update date only if changed
+  var wd = weekdays[now.getDay()];
+  var mo = months[now.getMonth()];
+  var day = now.getDate();
+  var newDateKey = wd + '|' + mo + '|' + day;
+  if (newDateKey !== lastDateString) {
+    lastDateString = newDateKey;
+    // build two-line date markup, this is done sparingly (only on change)
+    var dateEl = $('digitalDate');
+    // use innerHTML once (safe) because we avoid frequent writes
+    dateEl.innerHTML = '<span class="weekday">' + wd + '</span>' +
+                       '<span class="monthline"><span class="month">' + mo + '</span> <span class="day">' + day + '</span></span>';
+  }
 
-  if (newDateStr !== lastDateString) {
-    document.getElementById('digitalDate').innerHTML =
-      weekday + ', ' + month + ' <span class="day">' + day + '</span>';
-    lastDateString = newDateStr;
+  // adjust size to prevent clipping
+  fitTime();
+}
+
+/* Fit the time so it never overflows the time-area width.
+   We scale the .time-main element only (AM/PM stays unscaled).
+   Works with old browsers (uses offsetWidth).
+*/
+var lastScale = 1;
+function fitTime() {
+  try {
+    var timeArea = $('timeArea');
+    var main = $('timeMain');
+    var ampm = $('timeAMPM');
+
+    // make sure main has no transform so measurement is accurate
+    main.style.transform = 'none';
+
+    // widths
+    var areaW = timeArea.clientWidth; // available width
+    // measure actual widths
+    var mainW = main.offsetWidth;
+    var ampmW = ampm.offsetWidth + (parseInt(getComputedStyle(ampm).marginLeft,10)||0);
+
+    // small padding so digits don't touch edges
+    var padding = Math.max(6, Math.round(areaW * 0.03));
+    var available = areaW - ampmW - padding;
+
+    var scale = 1;
+    if (mainW > available && mainW > 0) {
+      scale = available / mainW;
+      if (scale < 0.5) scale = 0.5; // keep legible
+    }
+
+    // only update DOM if scale changed meaningfully
+    if (Math.abs(scale - lastScale) > 0.01) {
+      main.style.transform = 'scale(' + scale + ')';
+      main.style.transformOrigin = 'left center';
+      lastScale = scale;
+      // nudge AM/PM vertical position according to scale (keeps it visually aligned)
+      var topOffset = Math.max(-3, Math.round(-3 * scale));
+      ampm.style.top = topOffset + 'vw';
+    }
+  } catch (e) {
+    // fail silently on weird old browsers
   }
 }
 
-// Start updates
+/* initialization */
 setInterval(updateAnalog, 1000);
 setInterval(updateDigital, 1000);
+window.addEventListener ? window.addEventListener('resize', fitTime) : window.onresize = fitTime;
+
 updateAnalog();
 updateDigital();
 </script>
-
 </body>
 </html>
