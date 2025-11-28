@@ -3,27 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1024,height=768,initial-scale=1.0,user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>Clock + Photo Standby</title>
+<title>Clock + Photo Display</title>
 <style>
-html,body{margin:0;padding:0;height:100%;background:black;font-family:-apple-system,Helvetica,Arial,sans-serif;overflow:hidden;}
-.container{display:flex;width:100%;height:100%;}
-.left{width:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;color:white;}
-.right{width:50%;position:relative;overflow:hidden;background:black;display:flex;align-items:center;justify-content:center;position:relative;}
-#analog{width:65%;height:65%;max-width:300px;max-height:300px;}
-.time{font-size:11vw;font-weight:700;margin-top:10px;color:white;}
-#ampm{font-size:2.2vw;vertical-align:top;margin-left:5px;color:white;}
-.date{font-size:4vw;margin-top:10px;color:white;}
-.date .day{color:#ff4c4c;}
-#photo{max-width:100%;max-height:100%;object-fit:contain;}
-#nightOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:black;opacity:0;pointer-events:none;transition:opacity 0.5s ease;z-index:9;}
-#menu{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;}
-.menu-inner{background:#111;padding:20px;border-radius:15px;text-align:center;}
-.menu-inner button{display:block;width:180px;margin:8px auto;padding:8px;background:#222;color:white;border:none;border-radius:10px;font-size:14px;}
-#queue{width:90%;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;overflow-y:auto;max-height:50%;margin-top:10px;}
-.queue-item{width:50px;height:50px;object-fit:cover;border:1px solid #333;border-radius:5px;}
-#photoInput{display:none;}
+html, body { margin:0; padding:0; height:100%; background:black; font-family:-apple-system,Helvetica,Arial,sans-serif; overflow:hidden;}
+.container { display:flex; width:100%; height:100%; }
+.left { width:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center; }
+.right { width:50%; position:relative; background:black; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+#analog { width:90%; height:90%; max-width:450px; max-height:450px; }
+#analog svg { width:100%; height:100%; }
+.time { font-size:20vw; font-weight:700; margin-top:10px; color:white; }
+#ampm { font-size:3vw; vertical-align:top; margin-left:5px; color:white; }
+.date { font-size:5vw; margin-top:10px; color:white; }
+.date .day { color:#ff4c4c; }
+#photo { width:100%; height:100%; object-fit:cover; }
+#nightOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:black; opacity:0; pointer-events:none; transition:opacity 0.5s ease; z-index:9; }
+#menu { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:20; }
+.menu-inner { background:#111; padding:20px; border-radius:15px; text-align:center; }
+.menu-inner button { display:block; width:180px; margin:8px auto; padding:8px; background:#222; color:white; border:none; border-radius:10px; font-size:14px; }
+#queue { width:90%; display:flex; flex-wrap:wrap; gap:5px; justify-content:center; overflow-y:auto; max-height:40%; margin-top:10px; }
+.queue-item { width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:5px; }
+#photoInput { display:none; }
 </style>
 </head>
 <body>
@@ -42,13 +41,15 @@ html,body{margin:0;padding:0;height:100%;background:black;font-family:-apple-sys
 
 <div class="container">
   <div class="left" onclick="manualNightToggle()">
-    <svg id="analog" viewBox="0 0 200 200">
-      <circle cx="100" cy="100" r="95" stroke="#222" stroke-width="4" fill="none"/>
-      <line id="hourHand" x1="100" y1="100" x2="100" y2="55" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
-      <line id="minuteHand" x1="100" y1="100" x2="100" y2="40" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-      <line id="secondHand" x1="100" y1="100" x2="100" y2="30" stroke="#ff4c4c" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="100" cy="100" r="4" fill="#ff4c4c"/>
-    </svg>
+    <div id="analog">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="95" stroke="#222" stroke-width="4" fill="none"/>
+        <line id="hourHand" x1="100" y1="100" x2="100" y2="55" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+        <line id="minuteHand" x1="100" y1="100" x2="100" y2="40" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        <line id="secondHand" x1="100" y1="100" x2="100" y2="30" stroke="#ff4c4c" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="100" cy="100" r="4" fill="#ff4c4c"/>
+      </svg>
+    </div>
     <div class="time">
       <span id="clockTime">--:--</span>
       <span id="ampm">AM</span>
@@ -61,7 +62,7 @@ html,body{margin:0;padding:0;height:100%;background:black;font-family:-apple-sys
   </div>
 </div>
 
-<input type="file" id="photoInput" accept=".png,.jpg,.jpeg" multiple>
+<input type="file" id="photoInput" accept=".jpg,.jpeg,.png" multiple>
 
 <script>
 var manualOverride=false;
@@ -70,17 +71,25 @@ var images=JSON.parse(localStorage.getItem("slideshowImages")||"[]");
 var currentImage=0;
 
 /* MENU */
-function toggleMenu(){var m=document.getElementById("menu"); m.style.display=(m.style.display=="flex")?"none":"flex";}
+function toggleMenu(){
+  var m=document.getElementById("menu");
+  m.style.display=(m.style.display=="flex")?"none":"flex";
+}
 function closeMenu(){document.getElementById("menu").style.display="none";}
-function clearPhotos(){images=[];localStorage.removeItem("slideshowImages");document.getElementById("photo").src="";renderQueue();}
+function clearPhotos(){
+  images=[];
+  localStorage.removeItem("slideshowImages");
+  document.getElementById("photo").src="";
+  renderQueue();
+}
 
-/* IMAGE PICKER */
+/* PHOTO UPLOAD */
 document.getElementById("photoInput").addEventListener("change",function(e){
   var files=e.target.files;
   for(var i=0;i<files.length;i++){
     (function(file){
       var ext=file.name.split('.').pop().toLowerCase();
-      if(['jpg','jpeg','png'].indexOf(ext)===-1) return; 
+      if(['jpg','jpeg','png'].indexOf(ext)===-1) return;
       var reader=new FileReader();
       reader.onload=function(ev){
         images.push(ev.target.result);
@@ -95,35 +104,58 @@ document.getElementById("photoInput").addEventListener("change",function(e){
 
 /* SLIDESHOW */
 function showImage(){if(images.length===0)return;document.getElementById("photo").src=images[currentImage];}
-setInterval(function(){if(images.length===0)return;currentImage++;if(currentImage>=images.length)currentImage=0;showImage();},600000);
+setInterval(function(){if(images.length===0)return;currentImage++;if(currentImage>=images.length) currentImage=0;showImage();},600000);
+showImage();
 
-/* QUEUE */
-function renderQueue(){var container=document.getElementById("queue");container.innerHTML="";for(var i=0;i<images.length;i++){var img=document.createElement("img");img.src=images[i];img.className="queue-item";container.appendChild(img);}}
+function renderQueue(){
+  var container=document.getElementById("queue");
+  container.innerHTML="";
+  for(var i=0;i<images.length;i++){
+    var img=document.createElement("img");
+    img.src=images[i];
+    img.className="queue-item";
+    container.appendChild(img);
+  }
+}
 renderQueue();
 
 /* CLOCK */
 function updateClock(){
   var now=new Date();
-  var h=now.getHours(),m=now.getMinutes(),s=now.getSeconds();
+  var h=now.getHours(),m=now.getMinutes();
   var ampm=h>=12?"PM":"AM";h=h%12||12;m=m<10?"0"+m:m;
   document.getElementById("clockTime").textContent=h+":"+m;
   document.getElementById("ampm").textContent=ampm;
   var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   document.getElementById("clockDate").innerHTML=days[now.getDay()]+" "+months[now.getMonth()]+" <span class='day'>"+now.getDate()+"</span>";
-  updateAnalog(now);
-  autoNightCheck();
 }
-function updateAnalog(now){var s=now.getSeconds(),m=now.getMinutes(),h=now.getHours()%12;
-document.getElementById("secondHand").setAttribute("transform","rotate("+(s*6)+" 100 100)");
-document.getElementById("minuteHand").setAttribute("transform","rotate("+(m*6+s/10)+" 100 100)");
-document.getElementById("hourHand").setAttribute("transform","rotate("+(h*30+m/2)+" 100 100)");}
-setInterval(updateClock,1000);updateClock();
+setInterval(updateClock,1000);
+updateClock();
+
+/* ANALOG CLOCK SMOOTH */
+function smoothAnalog(){
+  var now=new Date();
+  var s=now.getSeconds()+now.getMilliseconds()/1000;
+  var m=now.getMinutes()+s/60;
+  var h=now.getHours()%12 + m/60;
+  document.getElementById("secondHand").setAttribute("transform","rotate("+s*6+" 100 100)");
+  document.getElementById("minuteHand").setAttribute("transform","rotate("+m*6+" 100 100)");
+  document.getElementById("hourHand").setAttribute("transform","rotate("+h*30+" 100 100)");
+  requestAnimationFrame(smoothAnalog);
+}
+requestAnimationFrame(smoothAnalog);
 
 /* NIGHT MODE */
-var NIGHT_START=22*60+20; var NIGHT_END=6*60+30;
-function autoNightCheck(){if(manualOverride)return; var now=new Date(); var mins=now.getHours()*60+now.getMinutes(); if(mins>=NIGHT_START||mins<NIGHT_END){enableNight();}else{disableNight();}}
-function manualNightToggle(){manualOverride=true; if(nightActive){disableNight();}else{enableNight();}}
+var NIGHT_START=22*60+20;
+var NIGHT_END=6*60+30;
+function autoNightCheck(){
+  if(manualOverride) return;
+  var now=new Date();
+  var mins=now.getHours()*60+now.getMinutes();
+  if(mins>=NIGHT_START||mins<NIGHT_END){enableNight();}else{disableNight();}
+}
+function manualNightToggle(){manualOverride=true;if(nightActive){disableNight();}else{enableNight();}}
 function enableNight(){nightActive=true;document.getElementById("nightOverlay").style.opacity=0.95;}
 function disableNight(){nightActive=false;document.getElementById("nightOverlay").style.opacity=0;}
 </script>
