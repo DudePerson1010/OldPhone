@@ -3,58 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1024,height=768,initial-scale=1.0,user-scalable=no">
-<title>Minimalist Clock + Photo Slideshow</title>
+<title>Clock + Photos Display</title>
+
 <style>
-html,body{
-  margin:0; padding:0; height:100%; background:black; font-family:-apple-system,Helvetica,Arial,sans-serif; overflow:hidden;
+html, body {
+  margin: 0; padding: 0;
+  height: 100%; background: #000; color: #fff;
+  font-family: -apple-system, Helvetica, Arial, sans-serif;
+  overflow: hidden;
 }
-.container{
-  display:flex; width:100%; height:100%;
+
+/* MAIN LAYOUT */
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
 }
-.left{
-  width:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center;
-  position:relative; border-right:2px solid rgba(255,255,255,0.2); /* subtle Apple-style separator */
+
+/* LEFT HALF — CLOCK */
+.left {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  border-right: 2px solid rgba(255,255,255,0.22); /* clean Apple-like divider */
+  padding-right: 4vw;   /* <<< ADJUST THIS FOR SPACING */
 }
-.right{
-  width:50%; position:relative; overflow:hidden; background:black; display:flex; align-items:center; justify-content:center; cursor:pointer;
+
+/* CLOCK */
+.time {
+  font-size: 20vw;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
-.time{
-  font-size:20vw; font-weight:700; color:white;
+.date {
+  font-size: 5vw;
+  margin-top: 10px;
 }
-.date{
-  font-size:5vw; margin-top:10px; color:white;
+.date .day {
+  color: #ff4c4c;
 }
-.date .day{color:#ff4c4c;}
-#photo{
-  width:100%; height:100%; object-fit:cover;
+
+/* RIGHT HALF — PHOTOS */
+.right {
+  width: 50%;
+  background: black;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
-#nightOverlay{
-  position:fixed; top:0; left:0; width:100%; height:100%; background:black; opacity:0; pointer-events:none; transition:opacity 0.5s ease; z-index:9;
+
+#photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;           /* NO BORDERS EVER */
+  background: black;           /* hides any load-time gaps */
+  display: block;
 }
-#menu{
-  position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; flex-direction:column; align-items:center; justify-content:center; z-index:20;
+
+/* NIGHT OVERLAY */
+#nightOverlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: black; opacity: 0; pointer-events:none;
+  transition: opacity 0.6s ease;
+  z-index: 9;
 }
-.menu-inner{
-  background:#111; padding:20px; border-radius:15px; text-align:center;
+
+/* MENU */
+#menu {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.88);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
 }
-.menu-inner button{
-  display:block; width:180px; margin:8px auto; padding:8px; background:#222; color:white; border:none; border-radius:10px; font-size:14px;
+
+.menu-inner {
+  background: #111;
+  padding: 20px;
+  border-radius: 15px;
+  width: 260px;
+  text-align: center;
 }
-#queue{
-  width:90%; display:flex; flex-wrap:wrap; gap:5px; justify-content:center; overflow-y:auto; max-height:40%; margin-top:10px;
+
+.menu-inner h3 {
+  margin-top: 0;
+  color: #fff;
 }
-.queue-item{width:50px; height:50px; object-fit:cover; border:1px solid #333; border-radius:5px;}
-#photoInput{display:none;}
+
+.menu-inner button {
+  display: block;
+  width: 200px;
+  padding: 10px;
+  margin: 10px auto;
+  background: #222;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+#queue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  overflow-y: auto;
+  max-height: 40%;
+  margin-top: 12px;
+}
+
+.queue-item {
+  width: 55px;
+  height: 55px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #333;
+}
+
+/* HIDDEN FILE INPUT */
+#photoInput {
+  display: none;
+}
 </style>
 </head>
+
 <body>
 
 <div id="nightOverlay"></div>
 
-<!-- Menu -->
+<!-- MENU -->
 <div id="menu">
   <div class="menu-inner">
-    <h3 style="color:white;">Photo Settings</h3>
+    <h3>Photo Settings</h3>
     <button onclick="document.getElementById('photoInput').click()">Add Photos</button>
     <button onclick="nextPhoto()">Next Photo</button>
     <button onclick="clearPhotos()">Clear Photos</button>
@@ -63,104 +150,146 @@ html,body{
   </div>
 </div>
 
+<!-- MAIN SCREEN -->
 <div class="container">
-  <!-- LEFT HALF: DIGITAL CLOCK + DATE -->
+
+  <!-- LEFT: CLOCK -->
   <div class="left" onclick="manualNightToggle()">
     <div class="time" id="clockTime">--:--</div>
     <div class="date" id="clockDate">Loading...</div>
   </div>
 
-  <!-- RIGHT HALF: PHOTO SLIDESHOW -->
+  <!-- RIGHT: PHOTO SLIDESHOW -->
   <div class="right" onclick="toggleMenu()">
     <img id="photo" src="">
   </div>
+
 </div>
 
-<input type="file" id="photoInput" accept=".jpg,.jpeg,.png" multiple>
+<input type="file" id="photoInput" accept="image/*" multiple>
 
 <script>
-/* STATE */
-var manualOverride=false;
-var nightActive=false;
-var images=JSON.parse(localStorage.getItem("slideshowImages")||"[]");
-var currentImage=0;
+/* ------------------ STATE -------------------- */
+var manualOverride = false;
+var nightActive = false;
+var currentImage = 0;
+var images = JSON.parse(localStorage.getItem("slideshowPics") || "[]");
 
-/* MENU FUNCTIONS */
-function toggleMenu(){
-  var m=document.getElementById("menu");
-  m.style.display=(m.style.display=="flex")?"none":"flex";
+/* ------------------ MENU --------------------- */
+function toggleMenu() {
+  let m = document.getElementById("menu");
+  m.style.display = (m.style.display === "flex") ? "none" : "flex";
 }
-function closeMenu(){document.getElementById("menu").style.display="none";}
-function clearPhotos(){
-  images=[];
-  localStorage.removeItem("slideshowImages");
-  document.getElementById("photo").src="";
-  renderQueue();
+function closeMenu() {
+  document.getElementById("menu").style.display = "none";
 }
 
-/* IMAGE UPLOAD */
-document.getElementById("photoInput").addEventListener("change",function(e){
-  var files=e.target.files;
-  for(var i=0;i<files.length;i++){
-    (function(file){
-      var ext=file.name.split('.').pop().toLowerCase();
-      if(['jpg','jpeg','png'].indexOf(ext)===-1) return;
-      var reader=new FileReader();
-      reader.onload=function(ev){
-        images.push(ev.target.result);
-        localStorage.setItem("slideshowImages",JSON.stringify(images));
-        showImage();
-        renderQueue();
-      };
-      reader.readAsDataURL(file);
-    })(files[i]);
+/* ------------------ UPLOAD IMAGES -------------------- */
+document.getElementById("photoInput").addEventListener("change", function(e){
+  let files = e.target.files;
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let reader = new FileReader();
+    reader.onload = function(ev){
+      images.push(ev.target.result);
+      localStorage.setItem("slideshowPics", JSON.stringify(images));
+      showImage();
+      renderQueue();
+    };
+    reader.readAsDataURL(file);
   }
 });
 
-/* SLIDESHOW */
-function showImage(){if(images.length===0) return; document.getElementById("photo").src=images[currentImage];}
-function nextPhoto(){if(images.length===0)return; currentImage++; if(currentImage>=images.length) currentImage=0; showImage();}
-setInterval(function(){if(images.length===0)return; currentImage++; if(currentImage>=images.length) currentImage=0; showImage();},600000);
+function clearPhotos() {
+  images = [];
+  localStorage.removeItem("slideshowPics");
+  renderQueue();
+  document.getElementById("photo").src = "";
+}
+
+/* ------------- RENDER QUEUE THUMBNAILS ---------------- */
+function renderQueue() {
+  let q = document.getElementById("queue");
+  q.innerHTML = "";
+  images.forEach(function(img){
+    let el = document.createElement("img");
+    el.src = img;
+    el.className = "queue-item";
+    q.appendChild(el);
+  });
+}
+
+/* ------------------ SLIDESHOW ------------------------ */
+function showImage() {
+  if (images.length === 0) return;
+  document.getElementById("photo").src = images[currentImage];
+}
+
+function nextPhoto() {
+  if (images.length === 0) return;
+  currentImage++;
+  if (currentImage >= images.length) currentImage = 0;
+  showImage();
+}
+
+/* rotate every 10 minutes */
+setInterval(nextPhoto, 600000);
+
+renderQueue();
 showImage();
 
-/* RENDER QUEUE */
-function renderQueue(){
-  var container=document.getElementById("queue");
-  container.innerHTML="";
-  for(var i=0;i<images.length;i++){
-    var img=document.createElement("img");
-    img.src=images[i];
-    img.className="queue-item";
-    container.appendChild(img);
-  }
-}
-renderQueue();
+/* ------------------ CLOCK ------------------------ */
+function updateClock() {
+  let now = new Date();
+  let h = now.getHours();
+  let m = now.getMinutes();
+  h = h % 12 || 12;
+  if (m < 10) m = "0" + m;
 
-/* CLOCK */
-function updateClock(){
-  var now=new Date();
-  var h=now.getHours(),m=now.getMinutes();
-  h=h%12||12; m=m<10?"0"+m:m;
-  document.getElementById("clockTime").textContent=h+":"+m;
-  var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  var days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  document.getElementById("clockDate").innerHTML=days[now.getDay()]+" "+months[now.getMonth()]+" <span class='day'>"+now.getDate()+"</span>";
+  document.getElementById("clockTime").textContent = h + ":" + m;
+
+  let months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+  document.getElementById("clockDate").innerHTML = 
+    days[now.getDay()] + " " +
+    months[now.getMonth()] + " " +
+    "<span class='day'>" + now.getDate() + "</span>";
 }
-setInterval(updateClock,1000);
+setInterval(updateClock, 1000);
 updateClock();
 
-/* NIGHT MODE */
-var NIGHT_START=22*60+20;
-var NIGHT_END=6*60+30;
-function autoNightCheck(){
-  if(manualOverride) return;
-  var now=new Date();
-  var mins=now.getHours()*60+now.getMinutes();
-  if(mins>=NIGHT_START||mins<NIGHT_END){enableNight();}else{disableNight();}
+/* ------------------ NIGHT MODE ---------------------- */
+
+var NIGHT_START = 22*60 + 20;  // 10:20 PM
+var NIGHT_END   = 6*60 + 30;   // 6:30 AM
+
+function autoNightCheck() {
+  if (manualOverride) return;
+  let now = new Date();
+  let mins = now.getHours()*60 + now.getMinutes();
+  if (mins >= NIGHT_START || mins < NIGHT_END) enableNight();
+  else disableNight();
 }
-function manualNightToggle(){manualOverride=true;if(nightActive){disableNight();}else{enableNight();}}
-function enableNight(){nightActive=true;document.getElementById("nightOverlay").style.opacity=0.95;}
-function disableNight(){nightActive=false;document.getElementById("nightOverlay").style.opacity=0;}
+
+setInterval(autoNightCheck, 60000); // check every minute
+autoNightCheck();
+
+function manualNightToggle() {
+  manualOverride = true;
+  nightActive ? disableNight() : enableNight();
+}
+
+function enableNight() {
+  nightActive = true;
+  document.getElementById("nightOverlay").style.opacity = "1";
+}
+
+function disableNight() {
+  nightActive = false;
+  document.getElementById("nightOverlay").style.opacity = "0";
+}
 </script>
+
 </body>
 </html>
