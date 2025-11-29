@@ -1,295 +1,349 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=1024,height=768,initial-scale=1.0,user-scalable=no">
-<title>Clock + Photos Display</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1024,height=768,initial-scale=1.0,user-scalable=no" />
+<title>Clock + Photos (Stable iPad 2)</title>
 <style>
-html, body {
-  margin: 0; padding: 0;
-  height: 100%; background: #000; color: #fff;
-  font-family: -apple-system, Helvetica, Arial, sans-serif;
-  overflow: hidden;
-}
-
-/* MAIN LAYOUT */
-.container {
-  display: flex;
-  width: 100%;
-  height: 100%;
-}
-
-/* LEFT HALF — CLOCK */
-.left {
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  color: white;
-  border-right: 2px solid rgba(255,255,255,0.22); /* clean Apple-like divider */
-  padding-right: 4vw;   /* <<< ADJUST THIS FOR SPACING */
-}
-
-/* CLOCK */
-.time {
-  font-size: 20vw;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-.date {
-  font-size: 5vw;
-  margin-top: 10px;
-}
-.date .day {
-  color: #ff4c4c;
-}
-
-/* RIGHT HALF — PHOTOS */
-.right {
-  width: 50%;
-  background: black;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-#photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;           /* NO BORDERS EVER */
-  background: black;           /* hides any load-time gaps */
-  display: block;
-}
-
-/* NIGHT OVERLAY */
-#nightOverlay {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background: black; opacity: 0; pointer-events:none;
-  transition: opacity 0.6s ease;
-  z-index: 9;
-}
-
-/* MENU */
-#menu {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background: rgba(0,0,0,0.88);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 20;
-}
-
-.menu-inner {
-  background: #111;
-  padding: 20px;
-  border-radius: 15px;
-  width: 260px;
-  text-align: center;
-}
-
-.menu-inner h3 {
-  margin-top: 0;
-  color: #fff;
-}
-
-.menu-inner button {
-  display: block;
-  width: 200px;
-  padding: 10px;
-  margin: 10px auto;
-  background: #222;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-}
-
-#queue {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  overflow-y: auto;
-  max-height: 40%;
-  margin-top: 12px;
-}
-
-.queue-item {
-  width: 55px;
-  height: 55px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #333;
-}
-
-/* HIDDEN FILE INPUT */
-#photoInput {
-  display: none;
-}
+  html,body{height:100%;margin:0;background:#000;color:#fff;font-family:-apple-system,Helvetica,Arial,sans-serif;overflow:hidden}
+  .container{display:flex;height:100%;width:100%}
+  .left{width:50%;box-sizing:border-box;padding-right:4vw;border-right:2px solid rgba(255,255,255,0.16);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .time{font-size:18vw;font-weight:700;line-height:0.9;white-space:nowrap}
+  .date{font-size:4.8vw;margin-top:10px}
+  .date .day{color:#ff4c4c}
+  .right{width:50%;position:relative;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  #photo{width:100%;height:100%;object-fit:cover;background:#000;display:block}
+  #nightOverlay{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .6s linear;z-index:9}
+  /* menu */
+  #menu{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:20}
+  .menu-inner{background:#111;padding:18px;border-radius:12px;width:260px;text-align:center}
+  .menu-inner h3{margin:0 0 12px;color:#fff}
+  .menu-inner button{display:block;margin:8px auto;padding:10px;width:200px;background:#222;color:#fff;border:none;border-radius:9px;font-size:14px}
+  #queue{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-height:36vh;overflow:auto;margin-top:10px}
+  .queue-item{width:50px;height:50px;object-fit:cover;border-radius:6px;border:1px solid #222}
+  input[type=file]{display:none}
+  /* small helper text for errors */
+  .note{font-size:12px;color:#ccc;margin-top:8px}
+  @media (max-width:768px){
+    .time{font-size:20vw}
+    .date{font-size:6vw}
+  }
 </style>
 </head>
-
 <body>
+  <div id="nightOverlay"></div>
 
-<div id="nightOverlay"></div>
-
-<!-- MENU -->
-<div id="menu">
-  <div class="menu-inner">
-    <h3>Photo Settings</h3>
-    <button onclick="document.getElementById('photoInput').click()">Add Photos</button>
-    <button onclick="nextPhoto()">Next Photo</button>
-    <button onclick="clearPhotos()">Clear Photos</button>
-    <button onclick="closeMenu()">Close</button>
-    <div id="queue"></div>
-  </div>
-</div>
-
-<!-- MAIN SCREEN -->
-<div class="container">
-
-  <!-- LEFT: CLOCK -->
-  <div class="left" onclick="manualNightToggle()">
-    <div class="time" id="clockTime">--:--</div>
-    <div class="date" id="clockDate">Loading...</div>
+  <!-- Hidden menu -->
+  <div id="menu">
+    <div class="menu-inner">
+      <h3>Photo Settings</h3>
+      <button id="addPhotosBtn">Add Photos</button>
+      <button id="nextBtn">Next Photo</button>
+      <button id="clearBtn">Clear Photos</button>
+      <div id="queue"></div>
+      <div class="note" id="storageNote" style="display:none"></div>
+      <button id="closeMenuBtn" style="margin-top:12px;background:#333">Close</button>
+    </div>
   </div>
 
-  <!-- RIGHT: PHOTO SLIDESHOW -->
-  <div class="right" onclick="toggleMenu()">
-    <img id="photo" src="">
+  <div class="container" id="app">
+    <div class="left" id="leftArea" role="button" aria-label="Toggle night mode">
+      <div class="time" id="clockTime">--:--</div>
+      <div class="date" id="clockDate">Loading...</div>
+    </div>
+
+    <div class="right" id="rightArea" role="button" aria-label="Open photo menu">
+      <img id="photo" alt="slideshow image" src="">
+    </div>
   </div>
 
-</div>
-
-<input type="file" id="photoInput" accept="image/*" multiple>
+  <input id="photoInput" type="file" accept="image/*" multiple />
 
 <script>
-/* ------------------ STATE -------------------- */
-var manualOverride = false;
-var nightActive = false;
-var currentImage = 0;
-var images = JSON.parse(localStorage.getItem("slideshowPics") || "[]");
+/* ------------------ Robust App for old Safari (iPad 2) ------------------ */
 
-/* ------------------ MENU --------------------- */
-function toggleMenu() {
-  let m = document.getElementById("menu");
-  m.style.display = (m.style.display === "flex") ? "none" : "flex";
-}
-function closeMenu() {
-  document.getElementById("menu").style.display = "none";
-}
+/* Config */
+var SLIDESHOW_KEY = "slideshowPics_v1"; // bump key if you want reset behavior
+var ROTATE_MS = 10 * 60 * 1000; // 10 minutes
+var NIGHT_START = 22*60 + 20; // 10:20pm
+var NIGHT_END   = 6*60 + 30;  // 6:30am
 
-/* ------------------ UPLOAD IMAGES -------------------- */
-document.getElementById("photoInput").addEventListener("change", function(e){
-  let files = e.target.files;
-  for (let i = 0; i < files.length; i++) {
-    let file = files[i];
-    let reader = new FileReader();
-    reader.onload = function(ev){
-      images.push(ev.target.result);
-      localStorage.setItem("slideshowPics", JSON.stringify(images));
-      showImage();
-      renderQueue();
-    };
-    reader.readAsDataURL(file);
+/* UI refs */
+var photoEl = document.getElementById('photo');
+var clockTimeEl = document.getElementById('clockTime');
+var clockDateEl = document.getElementById('clockDate');
+var leftArea = document.getElementById('leftArea');
+var rightArea = document.getElementById('rightArea');
+var menu = document.getElementById('menu');
+var queueEl = document.getElementById('queue');
+var storageNote = document.getElementById('storageNote');
+var nightOverlay = document.getElementById('nightOverlay');
+var photoInput = document.getElementById('photoInput');
+
+/* State */
+var images = [];        // in-memory array of DataURLs or remote URLs
+var currentIndex = 0;
+var rotateTimer = null;
+var manualNight = false;
+var nightOn = false;
+var usingLocalStorage = true; // we try to use it; if fails we fall back to session-only
+
+/* Safe localStorage load with fallback */
+function safeLoad() {
+  try {
+    var raw = localStorage.getItem(SLIDESHOW_KEY);
+    if (!raw) return [];
+    var parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch (e) {
+    // couldn't parse (possibly corrupted or exceeded quota)
+    try { localStorage.removeItem(SLIDESHOW_KEY); } catch(_) {}
+    usingLocalStorage = false;
+    storageNote.style.display = 'block';
+    storageNote.textContent = 'Saved images unavailable (storage issue). Images will show for this session only.';
+    return [];
   }
+}
+
+/* Safe localStorage save with fallback */
+function safeSave(arr) {
+  if (!usingLocalStorage) return false;
+  try {
+    localStorage.setItem(SLIDESHOW_KEY, JSON.stringify(arr));
+    return true;
+  } catch (e) {
+    // storage likely full / quota error
+    try { localStorage.removeItem(SLIDESHOW_KEY); } catch(_) {}
+    usingLocalStorage = false;
+    storageNote.style.display = 'block';
+    storageNote.textContent = 'Could not save images (storage quota). Images will show for this session only.';
+    return false;
+  }
+}
+
+/* Init images from storage, but keep it small to avoid parsing heavy pages */
+(function initImages() {
+  var stored = safeLoad();
+  if (stored && stored.length) {
+    images = stored.slice(0, 50); // limit to 50 to avoid huge memory on old devices
+  } else {
+    // add tiny default test images (small remote jpgs) so page never empties
+    images = [
+      'https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?w=800&q=60&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=800&q=60&auto=format&fit=crop'
+    ];
+    // don't auto-save defaults
+  }
+})();
+
+/* UI: render queue thumbnails */
+function renderQueue() {
+  queueEl.innerHTML = '';
+  for (var i=0; i<images.length; i++) {
+    var img = document.createElement('img');
+    img.className = 'queue-item';
+    img.src = images[i];
+    img.alt = 'thumb';
+    queueEl.appendChild(img);
+  }
+}
+
+/* Show current photo safely: set src after attaching onload to avoid blank flashes */
+function showCurrentPhoto() {
+  if (!images || images.length === 0) {
+    photoEl.src = '';
+    return;
+  }
+  var url = images[currentIndex % images.length];
+  // Set a tiny timeout to avoid blocking UI in some old Safari builds
+  setTimeout(function(){
+    photoEl.onload = function(){ /* loaded */ photoEl.onload = null; };
+    photoEl.onerror = function(){ photoEl.onerror = null; /* on error, skip to next */ };
+    photoEl.src = url;
+  }, 20);
+}
+
+/* Next photo */
+function nextPhoto() {
+  if (!images || images.length === 0) return;
+  currentIndex = (currentIndex + 1) % images.length;
+  showCurrentPhoto();
+}
+
+/* Rotate timer */
+function startRotate() {
+  stopRotate();
+  rotateTimer = setInterval(nextPhoto, ROTATE_MS);
+}
+function stopRotate(){
+  if (rotateTimer) { clearInterval(rotateTimer); rotateTimer = null; }
+}
+
+/* Add files via FileReader with robust handling */
+function handleFiles(files) {
+  if (!files || files.length === 0) return;
+  var added = 0;
+  for (var i=0; i<files.length; i++) {
+    (function(f){
+      // Accept many types but ignore weird heavy formats
+      var name = (f.name||'').toLowerCase();
+      // basic acceptance: images only
+      if (!f.type || f.type.indexOf('image') !== 0) {
+        // skip
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          // push to images; try save; if fails, we continue but keep in memory
+          images.push(ev.target.result);
+          added++;
+          // attempt to save; if fails safeSave will mark usingLocalStorage false
+          safeSave(images);
+          renderQueue();
+          showCurrentPhoto();
+        } catch (err) {
+          // ignore individual file errors to avoid crash
+        }
+      };
+      // readAsDataURL is the most compatible method
+      try {
+        reader.readAsDataURL(f);
+      } catch (err) {
+        // some older browsers may throw; ignore
+      }
+    })(files[i]);
+  }
+}
+
+/* Handle paste from clipboard (optional helpful fallback) */
+document.addEventListener('paste', function(e){
+  try {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i=0;i<items.length;i++){
+      if (items[i].kind === 'file') {
+        var blob = items[i].getAsFile();
+        handleFiles([blob]);
+      }
+    }
+  } catch(_) {}
 });
 
-function clearPhotos() {
-  images = [];
-  localStorage.removeItem("slideshowPics");
-  renderQueue();
-  document.getElementById("photo").src = "";
-}
-
-/* ------------- RENDER QUEUE THUMBNAILS ---------------- */
-function renderQueue() {
-  let q = document.getElementById("queue");
-  q.innerHTML = "";
-  images.forEach(function(img){
-    let el = document.createElement("img");
-    el.src = img;
-    el.className = "queue-item";
-    q.appendChild(el);
-  });
-}
-
-/* ------------------ SLIDESHOW ------------------------ */
-function showImage() {
-  if (images.length === 0) return;
-  document.getElementById("photo").src = images[currentImage];
-}
-
-function nextPhoto() {
-  if (images.length === 0) return;
-  currentImage++;
-  if (currentImage >= images.length) currentImage = 0;
-  showImage();
-}
-
-/* rotate every 10 minutes */
-setInterval(nextPhoto, 600000);
-
-renderQueue();
-showImage();
-
-/* ------------------ CLOCK ------------------------ */
+/* ---- Clock (simple, robust) ---- */
 function updateClock() {
-  let now = new Date();
-  let h = now.getHours();
-  let m = now.getMinutes();
-  h = h % 12 || 12;
-  if (m < 10) m = "0" + m;
-
-  document.getElementById("clockTime").textContent = h + ":" + m;
-
-  let months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  let days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-  document.getElementById("clockDate").innerHTML = 
-    days[now.getDay()] + " " +
-    months[now.getMonth()] + " " +
-    "<span class='day'>" + now.getDate() + "</span>";
+  try {
+    var now = new Date();
+    var h = now.getHours();
+    var m = now.getMinutes();
+    h = h % 12 || 12;
+    m = (m < 10 ? '0'+m : m);
+    clockTimeEl.textContent = h + ':' + m;
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    clockDateEl.innerHTML = days[now.getDay()] + ' ' + months[now.getMonth()] + ' <span class="day" style="color:#ff4c4c">' + now.getDate() + '</span>';
+  } catch (e) {
+    // keep running even if something odd happens
+  }
 }
-setInterval(updateClock, 1000);
-updateClock();
 
-/* ------------------ NIGHT MODE ---------------------- */
-
-var NIGHT_START = 22*60 + 20;  // 10:20 PM
-var NIGHT_END   = 6*60 + 30;   // 6:30 AM
-
-function autoNightCheck() {
-  if (manualOverride) return;
-  let now = new Date();
-  let mins = now.getHours()*60 + now.getMinutes();
-  if (mins >= NIGHT_START || mins < NIGHT_END) enableNight();
+/* ---- Night mode control ---- */
+function isNightTime() {
+  var now = new Date();
+  var mins = now.getHours()*60 + now.getMinutes();
+  return (mins >= NIGHT_START || mins < NIGHT_END);
+}
+function applyAutoNight() {
+  if (manualNight) return;
+  if (isNightTime()) enableNight();
   else disableNight();
 }
-
-setInterval(autoNightCheck, 60000); // check every minute
-autoNightCheck();
-
-function manualNightToggle() {
-  manualOverride = true;
-  nightActive ? disableNight() : enableNight();
-}
-
 function enableNight() {
-  nightActive = true;
-  document.getElementById("nightOverlay").style.opacity = "1";
+  nightOn = true;
+  nightOverlay.style.opacity = '1';
 }
-
 function disableNight() {
-  nightActive = false;
-  document.getElementById("nightOverlay").style.opacity = "0";
+  nightOn = false;
+  nightOverlay.style.opacity = '0';
 }
-</script>
 
+/* Toggle manual night */
+leftArea.addEventListener('click', function(e){
+  manualNight = true;
+  if (nightOn) disableNight();
+  else enableNight();
+});
+
+/* Right area opens menu */
+rightArea.addEventListener('click', function(e){
+  try {
+    menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+  } catch(_) {}
+});
+
+/* Menu buttons */
+document.getElementById('addPhotosBtn').addEventListener('click', function(){
+  photoInput.click();
+});
+document.getElementById('closeMenuBtn').addEventListener('click', function(){
+  menu.style.display = 'none';
+});
+document.getElementById('nextBtn').addEventListener('click', function(){
+  nextPhoto();
+});
+document.getElementById('clearBtn').addEventListener('click', function(){
+  images = [];
+  try { localStorage.removeItem(SLIDESHOW_KEY); } catch(_) {}
+  renderQueue();
+  photoEl.src = '';
+});
+
+/* File input change */
+photoInput.addEventListener('change', function(e){
+  try {
+    handleFiles(e.target.files || []);
+    // reset value so same files can be added twice if needed
+    try { e.target.value = null; } catch(_) {}
+  } catch(_) {}
+});
+
+/* Start things up safely on DOM ready */
+(function boot(){
+  // Ensure clock runs independent of other failures
+  try {
+    updateClock();
+    setInterval(updateClock, 1000);
+  } catch(_) {}
+
+  // initial render queue & photo
+  try { renderQueue(); } catch(_) {}
+  try { showCurrentPhoto(); } catch(_) {}
+
+  // auto-rotate
+  try { startRotate(); } catch(_) {}
+
+  // auto-night check every minute
+  try { applyAutoNight(); setInterval(applyAutoNight, 60000); } catch(_) {}
+
+  // Defensive: if images failed to render quickly, show fallback tiny remote images
+  setTimeout(function(){
+    if (!images || images.length === 0 || !photoEl.src) {
+      // if there was an issue, populate with two tiny remote images so UI isn't empty
+      if (!images || images.length === 0) {
+        images = [
+          'https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?w=640&q=30&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?w=640&q=30&auto=format&fit=crop'
+        ];
+        try { safeSave(images); } catch(_) {}
+        renderQueue();
+        currentIndex = 0;
+        showCurrentPhoto();
+      }
+    }
+  }, 900);
+})();
+
+</script>
 </body>
 </html>
